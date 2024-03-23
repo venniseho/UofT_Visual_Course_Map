@@ -71,20 +71,22 @@ class Graph:
     def add_prerequisites(self, prereq: set, course: str) -> None:
         """Updates a courses prerequisites. This funcitons takes in a set of related courses or "options"
         to meet a prerequisite requirement. The function will add one of these courses to all the current sets
-        to create a list containing sets of all the different courses.
+        to create a list containing sets of all the different coursecombos needed to meet the prereq for that course.
         If a tuple is taken in, all elements need to be taken together.
         """
         if (all({p in self._courses if isinstance(p, str) else all(p1 in self._courses for p1 in p) for p in prereq})
                 and course in self._courses):
             course_v = self._courses[course]
             if course_v.prerequisites != []:
-                combine_lists(course_v.prerequisites, prereq)
+                prereq_v = {self._courses[course_code] if isinstance(course_code, str)
+                            else tuple(self._courses[code] for code in course_code) for course_code in prereq}
+                combine_lists(course_v.prerequisites, prereq_v)
             else:
                 for courses in prereq:
                     if isinstance(courses, str):
-                        course_v.prerequisites.append({courses})
+                        course_v.prerequisites.append({self._courses[courses]})
                     else:
-                        course_v.prerequisites.append(set(courses))
+                        course_v.prerequisites.append({self._courses[course_code] for course_code in courses})
         else:
             raise ValueError
 
@@ -105,8 +107,9 @@ class Graph:
             raise ValueError
 
     def get_prerequisites(self, course_code: str) -> list:
-        """Returns a list of courses that are prerequisites to the given course
+        """Returns a list of courses that are prerequisites to the given course in str form
         """
+
         if self._courses[course_code].prerequisites == []:
             return []
         else:
@@ -114,8 +117,8 @@ class Graph:
             for course_set in self._courses[course_code].prerequisites:
                 new_prereq = []
                 for course in course_set:
-                    course_prereq = self.get_prerequisites(course).copy()
-                    combine_lists(course_prereq, {course})
+                    course_prereq = self.get_prerequisites(course.code).copy()
+                    combine_lists(course_prereq, {course.code})
                     combine_lists2(new_prereq, course_prereq)
                 all_prereq += new_prereq
             return all_prereq

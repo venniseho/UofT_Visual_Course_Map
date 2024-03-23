@@ -27,9 +27,9 @@ class Degree:
     # to implement later
     degree_type: str
 
-    def __init__(self, degree_name: str, required_courses: list[set[str]]):
+    def __init__(self, degree_name: str):
         self.name = degree_name
-        self.required_courses = required_courses
+        self.required_courses = []
 
 
 if __name__ == '__main__':
