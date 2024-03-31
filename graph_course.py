@@ -108,12 +108,13 @@ class Graph:
             raise ValueError
 
     def add_prerequisites2(self, prereq: set, course: str) -> None:
-        """Updates a courses prerequisites. This funcitons takes in a set of related courses or "options"
+        """
+        Updates a courses prerequisites. This funcitons takes in a set of related courses or "options"
         to meet a prerequisite requirement. The function will add one of these courses to all the current sets
         to create a list containing sets of all the different coursecombos needed to meet the prereq for that course.
         If a tuple is taken in, all elements need to be taken together.
         """
-        if (all({p in self._courses if isinstance(p, str) else all(p1 in self._courses for p1 in p) for p in prereq})
+        if (all({p in self._courses if p.isinstance(str) else all(p1 in self._courses for p1 in p) for p in prereq})
                 and course in self._courses):
             course_v = self._courses[course]
             prereq_v = [BoolOp('and', [self._courses[code] for code in course_code])
