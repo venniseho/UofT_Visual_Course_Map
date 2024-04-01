@@ -117,12 +117,16 @@ class Graph:
         # checks if the course exists as a vertice in the graph
         if course in self._courses:
             course_v = self._courses[course]
-            prereq_v = [BoolOp('and', [self._courses[code] for code in course_code if course in self._courses])
-                        if isinstance(course_code, tuple)
-                        else self._courses[course_code] for course_code in prereq]
+            prereq_v = []
+            for course_code in prereq:
+                if isinstance(course_code, tuple):
+                    prereq_v.append(BoolOp('and', [self._courses[code] for code in course_code if course in self._courses]))
+                else:
+                    if course_code in self._courses:
+                        prereq_v.append(self._courses[course_code])
             course_v.prerequisites.operand.append(BoolOp('or', prereq_v))
-        # else:
-        #     raise ValueError
+        else:
+            raise ValueError
 
     def add_dependents(self, course: str, dependent: str) -> None:
         """Add a dependant to a given course
