@@ -115,6 +115,16 @@ def parse_requisites(requisites: str) -> list[set]:
 
     return lst
 
+# def check_courses(graph: Graph, course_set: set) -> set:
+#     """
+#     Check if all courses in course_set are in the graph.
+#     If course_set contains tuples, check if each individual course is in the graph.
+#     If a course is not in graph, remove it from the set.
+#     Returns an edited set.
+#     """
+#     for element in course_set:
+#         if isinstance(element, str):
+#             if element in graph.
 
 if __name__ == '__main__':
     load_graph('clean_data.xlsx')
