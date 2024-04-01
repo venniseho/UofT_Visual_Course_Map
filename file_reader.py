@@ -54,25 +54,6 @@ def load_graph(excel_file: str) -> Graph:
             for subset in exclusions_list:
                 graph.add_exclusion(row['Course Code'], subset)
 
-    # add dependents
-    for index, row in dataframe.iterrows():
-        course = row['Course Code']
-        add_dependents(course, graph, dataframe)
-
-    return graph
-
-
-def add_dependents(course: str, graph: Graph, dataframe: pandas) -> None:
-    """
-    Adds dependent to a given course
-    """
-    for index, row in dataframe.iterrows():
-        curr_course = row['Course Code']
-        prerequisites = graph.get_immediate_prerequisites(curr_course)
-
-        if course in prerequisites:
-            graph.add_dependents(course, curr_course)
-
 
 def parse_requisites(requisites: str) -> list[set]:
     """
