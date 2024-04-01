@@ -90,20 +90,22 @@ class Graph:
     def add_exclusion(self, course_code: str, exclusion: set[str]) -> None:
         """Add an exclusion to course code
         """
-        if course_code in self._courses and all(exc in self._courses for exc in exclusion):
+        if course_code in self._courses:
             for ex in exclusion:
-                self._courses[course_code].exclusions.add(self._courses[ex])
-        # else:
-        #     raise ValueError
+                if ex in self._courses:
+                    self._courses[course_code].exclusions.add(self._courses[ex])
+        else:
+            raise ValueError
 
     def add_corequisites(self, course_code: str, coreq: set[str]) -> None:
         """Add an exclusion to course code
         """
-        if course_code in self._courses and all(cor in self._courses for cor in coreq):
+        if course_code in self._courses:
             for co in coreq:
-                self._courses[course_code].corequisites.add(self._courses[co])
-        # else:
-        #     raise ValueError
+                if co in self._courses:
+                    self._courses[course_code].corequisites.add(self._courses[co])
+        else:
+            raise ValueError
 
     def add_prerequisites(self, prereq: set, course: str) -> None:
         """
@@ -113,15 +115,14 @@ class Graph:
         If a tuple is taken in, all elements need to be taken together.
         """
         # checks if the course exists as a vertice in the graph
-        if (all({p in self._courses if isinstance(p, str) else all(p1 in self._courses for p1 in p) for p in prereq})
-                and course in self._courses):
+        if course in self._courses:
             course_v = self._courses[course]
-            prereq_v = [BoolOp('and', [self._courses[code] for code in course_code])
+            prereq_v = [BoolOp('and', [self._courses[code] for code in course_code if code in self._courses])
                         if isinstance(course_code, tuple)
-                        else self._courses[course_code] for course_code in prereq]
+                        else self._courses[course_code] for course_code in prereq if course_code in self._courses]
             course_v.prerequisites.operand.append(BoolOp('or', prereq_v))
-        # else:
-        #     raise ValueError
+        else:
+            raise ValueError
 
     def add_dependents(self, course: str, dependent: str) -> None:
         """Add a dependant to a given course
