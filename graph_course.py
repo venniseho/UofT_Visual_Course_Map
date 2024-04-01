@@ -115,10 +115,9 @@ class Graph:
         If a tuple is taken in, all elements need to be taken together.
         """
         # checks if the course exists as a vertice in the graph
-        if (all({p in self._courses if isinstance(p, str) else all(p1 in self._courses for p1 in p) for p in prereq})
-                and course in self._courses):
+        if course in self._courses:
             course_v = self._courses[course]
-            prereq_v = [BoolOp('and', [self._courses[code] for code in course_code])
+            prereq_v = [BoolOp('and', [self._courses[code] for code in course_code if course in self._courses])
                         if isinstance(course_code, tuple)
                         else self._courses[course_code] for course_code in prereq]
             course_v.prerequisites.operand.append(BoolOp('or', prereq_v))

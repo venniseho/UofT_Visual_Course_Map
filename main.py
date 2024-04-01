@@ -26,8 +26,10 @@ from file_reader import load_graph
 if __name__ == '__main__':
     graph = load_graph('clean_data.xlsx')
 
-    m = graph.get_prerequisites('MAT237Y1', {'MAT135H1'}, set('MAT137Y1'), 3.0)
+    m = graph.get_prerequisites('MAT237Y1', {'MAT135H1'}, {'MAT137Y1'}, 3.0)
     print(m)
+    print(graph.get_prerequisites('STA237H1', {'MAT135H1'}, {'MAT137Y1'}, 3.0))
+    print(graph.get_all_prerequisites('STA237H1'))
 
     p = graph._courses['MAT237Y1'].prerequisites
     print(p.evaluate())
