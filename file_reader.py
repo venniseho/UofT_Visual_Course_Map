@@ -54,6 +54,8 @@ def load_graph(excel_file: str) -> Graph:
             for subset in exclusions_list:
                 graph.add_exclusion(row['Course Code'], subset)
 
+    return graph
+
 
 def parse_requisites(requisites: str) -> list[set]:
     """

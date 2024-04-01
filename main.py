@@ -20,7 +20,7 @@ cs_specialist = Degree('Computer Science Specialist', 'ASSPE1609', 'Specialist')
 required_courses = []
 
 for course in required_courses:
-    cs_specialist.add_prerequisites2()
+    cs_specialist.add_prerequisites()
 
 
 if __name__ == '__main__':
