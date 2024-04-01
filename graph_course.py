@@ -32,8 +32,6 @@ class _Course(Expr):
     - code: the course code (ex. CSC111)
     - prerequisites: the courses that point to this course
     - dependents: the courses that this course points to
-
-    Representation Invariants:
     """
     code: str
     prerequisites: BoolOp
@@ -107,7 +105,7 @@ class Graph:
         # else:
         #     raise ValueError
 
-    def add_prerequisites2(self, prereq: set, course: str) -> None:
+    def add_prerequisites(self, prereq: set, course: str) -> None:
         """
         Updates a courses prerequisites. This funcitons takes in a set of related courses or "options"
         to meet a prerequisite requirement. The function will add one of these courses to all the current sets
@@ -164,6 +162,14 @@ class Graph:
                     not any(prereq in all_exclusions for prereq in prereq_set)]
         return [pathway for pathway in sorted([(count_credits(course_set), course_set) for course_set in excluded]) if
                 pathway[0] <= credit]
+
+    def get_immediate_prerequisites(self, course_code: str) -> list:
+        """
+        Gets the prerequisites immediately before a course.
+        """
+        if course_code in self._courses:
+            prerequisites = self._courses[course_code].prerequisites
+
 
     def get_dependents(self, course_code: str) -> set:
         """Returns a list of courses that are dependents to the given course

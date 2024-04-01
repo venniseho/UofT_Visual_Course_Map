@@ -8,27 +8,33 @@ Creators:
 - Ryan Fu
 - Vennise Ho
 """
+from graph_course import Graph, _Course
 
 
-class Degree:
+class Degree(_Course):
     """
     A degree at the University of Toronto.
 
     Instance Attributes:
     - name: the name of the degree
-    - degree_type: the type of degree (i.e. major, minor, specialist, focus)
+    - code: the code used for the degree
+    - degree_type: the type of degree (i.e. major, minor, specialist)
     - required_courses: a list of course codes that are required to complete the degree
                         sets are used to indicate options for courses
+
+    Representation Invariants:
+    - self.degree_type in ['Specialist', 'Major', 'Minor']
     """
-
     name: str
-    required_courses: list[set[str]]
-
-    # to implement later
     degree_type: str
+    credits: int
+    breadth: bool
 
-    def __init__(self, degree_name: str):
+    def __init__(self, degree_name: str, code: str, degree_type: str):
+        super().__init__()
         self.name = degree_name
+        self.code = code
+        self.degree_type = degree_type
         self.required_courses = []
 
 

@@ -9,13 +9,12 @@ Creators:
 - Vennise Ho
 """
 import pandas
-import openpyxl
 from graph_course import Graph
 
 
-def load_graph(excel_file: str) -> None:
+def load_graph(excel_file: str) -> Graph:
     """
-    reads an excel file
+    Loads information from an excel_file into an instance of the graph class.
 
     'MAT137 / (MAT135,MAT136), CSC110, CSC111'
     [{MAT137, (MAT135, MAT136)}, {CSC110}, {CSC111}]
@@ -37,7 +36,7 @@ def load_graph(excel_file: str) -> None:
             prerequisites_list = parse_requisites(prerequisites)
 
             for subset in prerequisites_list:
-                graph.add_prerequisites2(subset, row['Course Code'])
+                graph.add_prerequisites(subset, row['Course Code'])
 
         # corequisites
         corequisites = row['Corequisites']
@@ -60,18 +59,19 @@ def load_graph(excel_file: str) -> None:
         course = row['Course Code']
         add_dependents(course, graph, dataframe)
 
+    return graph
 
-def add_dependents(course: str, graph: Graph, dataframe) -> None:
+
+def add_dependents(course: str, graph: Graph, dataframe: pandas) -> None:
     """
-    Adds dependents to a given course
+    Adds dependent to a given course
     """
     for index, row in dataframe.iterrows():
         curr_course = row['Course Code']
-        prerequisites = graph.get_all_prerequisites(curr_course)
+        prerequisites = graph.get_immediate_prerequisites(curr_course)
 
         if course in prerequisites:
             graph.add_dependents(course, curr_course)
-
 
 
 def parse_requisites(requisites: str) -> list[set]:
@@ -128,13 +128,6 @@ def parse_requisites(requisites: str) -> list[set]:
     lst.append(course_set)
 
     return lst
-
-
-def add_dependents(course_code: str, graph: Graph) -> None:
-    """
-    adds dependent courses to a given course
-    """
-
 
 
 if __name__ == '__main__':
