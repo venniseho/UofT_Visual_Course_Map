@@ -10,6 +10,7 @@ Creators:
 """
 import pandas
 from graph_course import Graph
+import re
 
 
 def load_graph(excel_file: str) -> Graph:
@@ -136,112 +137,202 @@ def parse_requisites(requisites: str) -> list[set]:
     >>> answer =
     >>> parse_requisites('MAT137/(MAT135,MAT136),((CSC110,CSC111)/(CSC108/CSC109, CSC165))') == answer
     """
+    requisites_list = split_string(requisites)
+
     lst = []
-    course_set = set()
-    course_name = ''
-    i = 0
 
-    while i < len(requisites):
-        char = requisites[i]
-        if char == '(':
-            parsed_sublist, skip = parse_prerequisites_helper(requisites[i:], 0)
+    for i in range(len(requisites_list)):
+        substring = requisites_list[i]
 
-            for subset in parsed_sublist:
-                # print('----------------', subset)
-                if isinstance(subset, set):
-                    course_set = course_set.union(subset)
+        if substring == '(':
+            return parse_helper(requisites_list[i:])
 
-                else:
-                    course_set.add(subset)
 
-            i += skip
+def parse_helper(sublist) -> list:
 
-        elif char == ',':
-            if course_name != '':
-                course_set.add(course_name)
-            if course_set != set():
-                lst.append(course_set)
+    lst = []
+    t_lst = []
+    subset = set()
 
-            course_set = set()
-            course_name = ''
+    for i in range(len(sublist)):
+        substring = sublist[i]
 
-        elif char == '/':
-            if course_name != '':
-                course_set.add(course_name)
+        if substring == '(':
+            t = tuple(parse_helper(sublist[i + 1:]))
 
-            course_name = ''
+        elif substring == ',':
+            subset.add(sublist[i - 1])
+            t_lst.append(subset)
+            lst.append(t_lst)
 
-        # # # # # # # # # # # # # # # # #
-        if char.isalnum():
-            course_name += char
-        i += 1
+        elif substring == '/':
+            subset.add(sublist[i - 1])
 
-    if course_name != '':
-        course_set.add(course_name)
-    if course_set != set():
-        lst.append(course_set)
+        elif substring == ')':
+            if sublist[i - 2] == ',':
+                lst.append(sublist[i - 1])
+            elif sublist[i - 2] == '/':
+                subset.add(sublist[i - 1])
+                lst.append(subset)
+            return lst
+
+    # for substring in requisites_list:
+
+def parse(s: str):
+    split_list = split_string(s)
+
+    lst = []
+    temp_set = set()
+
+    for i in range(len(split_list) - 1):
+        substring = split_list[i]
+
+        if substring == '/':
+            temp_set.add(split_list[i - 1])
+            temp_set.add(split_list[i + 1])
+
+        if substring == ',':
+            if temp_set != set():
+                lst.append(temp_set)
+                temp_set = set()
+            else:
+                lst.append({split_list[i - 1]})
+
+    if temp_set != set():
+        lst.append(temp_set)
+    else:
+        lst.append({split_list[-1]})
+
     return lst
 
 
-def parse_prerequisites_helper(requisites: str, bracket_depth: int) -> (list[set], int):
-    """
-    Recursive helper for parse_prerequisites
-    """
-    lst = []
-    course_set = set()
-    course_name = ''
-    i = 0
 
-    while i < len(requisites):
-        char = requisites[i]
-        if char == '(':
-            parsed_list, skip = parse_prerequisites_helper(requisites[i + 1:], bracket_depth + 1)
-            lst += parsed_list
-            i += skip + 1
+def split_string(s: str) -> list[str]:
+    split_lst = []
+    curr_str = ''
+    for char in s:
+        if char in [',', '/', '(', ')']:
+            if curr_str != '':
+                split_lst.append(curr_str)
+                curr_str = ''
 
-            if bracket_depth == 0:
-                return (lst, i)
+            split_lst.append(char)
 
-            continue
+        else:
+            curr_str += char
 
-        elif char == ')':
-            course_set.add(course_name)
-            lst.append(course_set)
-            return (lst, i + 2)
+    if curr_str != '':
+        split_lst.append(curr_str)
 
-        elif char == ',':
-            # parsed list is the rest of the courses after the comma and before the next ')'
-            parsed_list, skip = parse_prerequisites_helper(requisites[i + 1:], bracket_depth)
+    return split_lst
 
-            if course_name != '':
-                course_set.add(course_name)
 
-            for subset in parsed_list:
-                course_set = course_set.union(subset)
-
-            lst.append(tuple(course_set))
-
-            course_set = set()
-            # course_name = ''
-
-            bracket_depth -= 1
-            i += skip
-
-            if bracket_depth == 0:
-                return (lst, i)
-
-            continue
-
-        elif char == '/':
-            if course_name != '':
-                course_set.add(course_name)
-                course_name = ''
-
-        if char.isalnum():
-            course_name += char
-        i += 1
-
-    return (lst, i + 1)
+#     lst = []
+#     course_set = set()
+#     course_name = ''
+#     i = 0
+#
+#     while i < len(requisites):
+#         char = requisites[i]
+#         if char == '(':
+#             parsed_sublist, skip = parse_prerequisites_helper(requisites[i:], 0)
+#
+#             for subset in parsed_sublist:
+#                 # print('----------------', subset)
+#                 if isinstance(subset, set):
+#                     course_set = course_set.union(subset)
+#
+#                 else:
+#                     course_set.add(subset)
+#
+#             i += skip
+#
+#         elif char == ',':
+#             if course_name != '':
+#                 course_set.add(course_name)
+#             if course_set != set():
+#                 lst.append(course_set)
+#
+#             course_set = set()
+#             course_name = ''
+#
+#         elif char == '/':
+#             if course_name != '':
+#                 course_set.add(course_name)
+#
+#             course_name = ''
+#
+#         # # # # # # # # # # # # # # # # #
+#         if char.isalnum():
+#             course_name += char
+#         i += 1
+#
+#     if course_name != '':
+#         course_set.add(course_name)
+#     if course_set != set():
+#         lst.append(course_set)
+#     return lst
+#
+#
+# def parse_prerequisites_helper(requisites: str, bracket_depth: int) -> (list[set], int):
+#     """
+#     Recursive helper for parse_prerequisites
+#     """
+#     lst = []
+#     course_set = set()
+#     course_name = ''
+#     i = 0
+#
+#     while i < len(requisites):
+#         char = requisites[i]
+#         if char == '(':
+#             parsed_list, skip = parse_prerequisites_helper(requisites[i + 1:], bracket_depth + 1)
+#             lst += parsed_list
+#             i += skip + 1
+#
+#             if bracket_depth == 0:
+#                 return (lst, i)
+#
+#             continue
+#
+#         elif char == ')':
+#             course_set.add(course_name)
+#             lst.append(course_set)
+#             return (lst, i + 2)
+#
+#         elif char == ',':
+#             # parsed list is the rest of the courses after the comma and before the next ')'
+#             parsed_list, skip = parse_prerequisites_helper(requisites[i + 1:], bracket_depth)
+#
+#             if course_name != '':
+#                 course_set.add(course_name)
+#
+#             for subset in parsed_list:
+#                 course_set = course_set.union(subset)
+#
+#             lst.append(tuple(course_set))
+#
+#             course_set = set()
+#             # course_name = ''
+#
+#             bracket_depth -= 1
+#             i += skip
+#
+#             if bracket_depth == 0:
+#                 return (lst, i)
+#
+#             continue
+#
+#         elif char == '/':
+#             if course_name != '':
+#                 course_set.add(course_name)
+#                 course_name = ''
+#
+#         if char.isalnum():
+#             course_name += char
+#         i += 1
+#
+#     return (lst, i + 1)
 
 
 # def check_courses(graph: Graph, course_set: set) -> set:
@@ -276,14 +367,24 @@ if __name__ == '__main__':
     # # [{('MAT135', 'MAT136'), 'MAT137'}]
     # print(parse_requisites('MAT137/(MAT135,MAT136)'))
 
-    # [{('MAT135', 'MAT136'), 'MAT137'}, {'CSC110'}]
-    print(parse_requisites('MAT137/(MAT135,MAT136),CSC110'))
-
-    # [{('MAT135', 'MAT136'), 'MAT137'}, {'CSC110'}, {'CSC111'}]
-    print(parse_requisites('MAT137/(MAT135,MAT136),CSC110,CSC111'))
-
-    # [{(('CSC110', 'CSC111'), 'CSC165')}]
-    print(parse_requisites('((CSC110,CSC111)/CSC165, CSC109)'))
+    # # [{('MAT135', 'MAT136'), 'MAT137'}, {'CSC110'}]
+    # print(parse_requisites('MAT137/(MAT135,MAT136),CSC110'))
     #
-    # [{'MAT137', ('MAT135', 'MAT136')}, {({(('CSC110', 'CSC111'), 'CSC165')})}]
-    print(parse_requisites('MAT137/(MAT135,MAT136),((CSC110,CSC111),CSC165)'))
+    # # [{('MAT135', 'MAT136'), 'MAT137'}, {'CSC110'}, {'CSC111'}]
+    # print(parse_requisites('MAT137/(MAT135,MAT136),CSC110,CSC111'))
+    #
+    # # [{(('CSC110', 'CSC111'), 'CSC165')}]
+    # print(parse_requisites('((CSC110,CSC111)/CSC165, CSC109)'))
+    # #
+    # # [{'MAT137', ('MAT135', 'MAT136')}, {({(('CSC110', 'CSC111'), 'CSC165')})}]
+    # print(parse_requisites('MAT137/(MAT135,MAT136),((CSC110,CSC111),CSC165)'))
+
+    # print(parse_requisites('MAT137/(MAT135,MAT136),CSC110,CSC111'))
+
+    # print(parse_requisites('(a,b)'))
+
+    print(parse('a/b/c,d/e,f'))
+
+    # ((CSC110/CSC111, CSC112) / CSC165, CSC109)
+    #
+    # (({CSC110, CSC111}, CSC112))
