@@ -62,9 +62,10 @@ def prerequisite_finder(collection: dict[str, Any], html_value: bs4.PageElement)
         clean_text = value.get_text()
         clean_text_remove_tag = clean_text.replace("Prerequisite: ", "")
         clean_text_min_grade_clean = (clean_text_remove_tag.replace("(minimum ", "{").replace("grade ", "")
-                                      .replace("%)", "}"))
-        clean_text_separation = (clean_text_min_grade_clean.replace("/", " / ").replace(",", " , ")
-                                 .replace(";", " , ")).replace("(", " ( ").replace(")", " ) ").split()
+                                      .replace("%)", "}")).replace(".", "")
+        clean_text_separation = ((clean_text_min_grade_clean.replace("/", " / ").replace(",", " , ")
+                                 .replace(";", " , ")).replace("(", " ( ").replace(")", " ) ")
+                                 .replace("[", " ( ").replace("]", " ) ").split())
         clean_text_separation = [item for item in clean_text_separation if item in "()/,"
                                  or course_code_identifier(item)]
 
@@ -80,9 +81,10 @@ def corequisite_finder(collection: dict[str, Any], html_value: bs4.PageElement) 
         clean_text = value.get_text()
         clean_text_remove_tag = clean_text.replace("Corequisite: ", "")
         clean_text_min_grade_clean = (clean_text_remove_tag.replace("(minimum ", "{").replace("grade ", "")
-                                      .replace("%)", "}"))
-        clean_text_separation = (clean_text_min_grade_clean.replace("/", " / ").replace(",", " , ")
-                                 .replace(";", " , ")).replace("(", " ( ").replace(")", " ) ").split()
+                                      .replace("%)", "}")).replace(".", "")
+        clean_text_separation = ((clean_text_min_grade_clean.replace("/", " / ").replace(",", " , ")
+                                 .replace(";", " , ")).replace("(", " ( ").replace(")", " ) ")
+                                 .replace("[", " ( ").replace("]", " ) ").split())
         clean_text_separation = [item for item in clean_text_separation if item in "()/,"
                                  or course_code_identifier(item)]
         collection["Corequisites"] = " ".join(clean_text_separation)
@@ -97,9 +99,10 @@ def exclusion_finder(collection: dict[str, Any], html_value: bs4.PageElement) ->
         clean_text = value.get_text()
         clean_text_remove_tag = clean_text.replace("Exclusion: ", "")
         clean_text_min_grade_clean = (clean_text_remove_tag.replace("(minimum ", "{").replace("grade ", "")
-                                      .replace("%)", "}"))
-        clean_text_separation = (clean_text_min_grade_clean.replace("/", " / ").replace(",", " , ")
-                                 .replace(";", " , ")).replace("(", " ( ").replace(")", " ) ").split()
+                                      .replace("%)", "}")).replace(".", "")
+        clean_text_separation = ((clean_text_min_grade_clean.replace("/", " / ").replace(",", " , ")
+                                 .replace(";", " , ")).replace("(", " ( ").replace(")", " ) ")
+                                 .replace("[", " ( ").replace("]", " ) ").split())
         clean_text_separation = [item for item in clean_text_separation if item in "()/,"
                                  or course_code_identifier(item)]
         collection["Exclusion"] = " ".join(clean_text_separation)
@@ -113,7 +116,7 @@ def distribution_finder(collection: dict[str, Any], html_value: bs4.PageElement)
     if value is not None:
         clean_text = value.get_text()
         clean_text_remove_tag = (clean_text.replace(" ", "").replace("Distribution", "")
-                                 .replace("Requirements", "").replace(":", ""))
+                                 .replace("Requirements", "").replace(":", "")).replace(".", "")
         collection["Distribution Requirements"] = clean_text_remove_tag
 
 
@@ -123,7 +126,7 @@ def breadth_finder(collection: dict[str, Any], html_value: bs4.PageElement) -> N
     """
     value = html_value.find("span", class_="views-field views-field-field-breadth-requirements")
     if value is not None:
-        clean_text = value.get_text().replace("(", "").replace(")", "").split()[-1]
+        clean_text = value.get_text().replace("(", "").replace(")", "").replace(".", "").split()[-1]
         collection["Breadth Requirements"] = clean_text
 
 
