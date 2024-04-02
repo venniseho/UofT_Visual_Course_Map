@@ -107,7 +107,7 @@ class Graph:
         else:
             raise ValueError
 
-    def add_prerequisites2(self, prereq: set, course: str) -> None:
+    def add_prerequisites(self, prereq: set, course: str) -> None:
         """
         Updates a courses prerequisites. This funcitons takes in a set of related courses or "options"
         to meet a prerequisite requirement. The function will add one of these courses to all the current sets
