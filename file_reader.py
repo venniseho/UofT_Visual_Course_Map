@@ -205,9 +205,34 @@ def parse(s: str):
 
     return lst
 
+def parse2(s: str):
+
+    if s in '':
+        return []
+
+    lst = split_string(s)
+    i = 1
+
+    if not lst:
+        return []
+
+    lst[0] = {lst[0]}
+
+    while i < len(lst):
+        if lst[i] == '/':
+            lst.pop(i)
+            course = lst.pop(i)
+            lst[i - 1].add(course)
+
+        elif lst[i] == ',':
+            lst.pop(i)
+            lst[i] = {lst[i]}
+            i += 1
+
+    return lst
 
 
-def split_string(s: str) -> list[str]:
+def split_string(s: str) -> list:
     split_lst = []
     curr_str = ''
     for char in s:
@@ -383,7 +408,7 @@ if __name__ == '__main__':
 
     # print(parse_requisites('(a,b)'))
 
-    print(parse('a/b/c,d/e,f'))
+    print(parse2('a/b/c,d/e,f'))
 
     # ((CSC110/CSC111, CSC112) / CSC165, CSC109)
     #
