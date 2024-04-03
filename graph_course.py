@@ -9,61 +9,7 @@ Creators:
 - Vennise Ho
 """
 from __future__ import annotations
-from typing import Any
-
-
-class Expr:
-    """A general expression in our abstract syntax tree
-    """
-
-    def __init__(self) -> None:
-        pass
-
-    def evaluate(self) -> Any:
-        """Evaluates an expression, whetehr it;s a course or a BoolOp
-        """
-        raise NotImplementedError
-
-
-class _Course(Expr):
-    """A course in a graph (acts as a vertex).
-
-    Instance Attributes:
-    - code: the course code (ex. CSC111)
-    - prerequisites: the courses that point to this course
-    - dependents: the courses that this course points to
-    """
-    code: str
-    prerequisites: BoolOp
-    dependents: set[_Course]
-
-    # extra / implement later
-    name: str
-    description: str
-    breadth: int
-    credit: float
-    exclusions: set[_Course]
-    corequisites: set[_Course]
-
-    def __init__(self, code: str) -> None:
-        """Initialize a new course vertex with the given code, prerequisites, and dependents.
-        """
-        super().__init__()
-        self.code = code
-        self.prerequisites = BoolOp('and', [])
-        self.dependents = set()
-        self.credit = 1.0 if code[6] == 'Y' else 0.5
-        self.exclusions = set()
-        self.corequisites = set()
-
-    def evaluate(self) -> list:
-        """Evaluate the course to give itself and its prerequisites
-        """
-        return combine_lists3([{self.code}], self.prerequisites.evaluate())
-
-    def are_exclusions(self, course: _Course) -> bool:
-        """Check if self and course are exclusions of each other"""
-        return course in self.exclusions and self in course.exclusions
+from expression_tree_classes import _Course, Tree, BoolOp
 
 
 class Graph:
@@ -107,7 +53,7 @@ class Graph:
         else:
             raise ValueError
 
-    def add_prerequisites2(self, prereq: set, course: str) -> None:
+    def add_prerequisites(self, prereq: set, course: str) -> None:
         """
         Updates a courses prerequisites. This funcitons takes in a set of related courses or "options"
         to meet a prerequisite requirement. The function will add one of these courses to all the current sets
@@ -120,7 +66,8 @@ class Graph:
             prereq_v = []
             for course_code in prereq:
                 if isinstance(course_code, tuple):
-                    prereq_v.append(BoolOp('and', [self._courses[code] for code in course_code if course in self._courses]))
+                    prereq_v.append(
+                        BoolOp('and', [self._courses[code] for code in course_code if course in self._courses]))
                 else:
                     if course_code in self._courses:
                         prereq_v.append(self._courses[course_code])
@@ -149,81 +96,21 @@ class Graph:
                 coreq.update(coreqs)
             prereq_set.update(coreq)
 
-        return [set_prereq for set_prereq in prereqs if not any(
+        prereq_exclusions = [set_prereq for set_prereq in prereqs if not any(
             self._courses[pre].are_exclusions(self._courses[exclusion]) for pre in set_prereq for exclusion in
             set_prereq)]
+
+        for ex_prereqs in prereq_exclusions.copy():
+            if any(ex_prereq_pathway.issubset(ex_prereqs) and ex_prereq_pathway != ex_prereqs for ex_prereq_pathway in
+                   prereq_exclusions.copy()):
+                prereq_exclusions.remove(ex_prereqs)
+
+        return prereq_exclusions
 
     def get_prerequisites(self, course_code: str, completed: set[str], exclude: set[str], credit: float) -> list:
         """Returns the pathways under the specified number of credits to meet the prerequisite for a given course
         given a set of courses the user has already completed and a set of courses the user wants to avoid.
         In the case of a tie, return all possibilities.
-        >>> g = Graph()
-       >>> for course in {'MAT135H1','MAT136H1', 'MAT137Y1', 'MAT157Y1', 'MAT223H1', 'MAT240H1', 'MAT237Y1', 'MAT235Y1', 'MAT138H1'}:
-       ...     g.add_course(course)
-       >>> for course in {'CSC413H1', 'CSC108H1', 'CSC148H1', 'CSC110Y1', 'CSC111H1'}:
-       ...     g.add_course(course)
-       >>> g.add_prerequisites2({('MAT135H1', 'MAT136H1', 'MAT138H1'), 'MAT137Y1', 'MAT157Y1'}, 'MAT237Y1')
-       >>> g.add_prerequisites2({('MAT135H1', 'MAT136H1'), 'MAT137Y1', 'MAT157Y1'}, 'MAT235Y1')
-       >>> g.add_prerequisites2({'MAT237Y1', 'MAT235Y1'}, 'CSC413H1')
-       >>> g.add_prerequisites2({'CSC148H1', 'CSC111H1'}, 'CSC413H1')
-       >>> g.add_prerequisites2({'CSC108H1'}, 'CSC148H1')
-       >>> g.add_prerequisites2({'CSC110Y1'}, 'CSC111H1')
-       >>> g.add_prerequisites2({'MAT223H1', 'MAT240H1'}, 'MAT237Y1')
-       >>> g.get_all_prerequisites('CSC148H1')
-       [{'CSC108H1'}]
-       >>> len(g.get_all_prerequisites('CSC413H1'))
-       18
-       >>> for course in {'CHM135H1', 'CHM136H1', 'CHM151Y1', 'BIO120H1', 'BIO130H1', 'HMB265H1', 'BIO230H1'}:
-       ...     g.add_course(course)
-       >>> for course in {'BCH210H1', 'BCH311H1', 'CSB349H1'}:
-       ...     g.add_course(course)
-       >>> for course in {'CSC324H1', 'CSC373H1', 'BCB410H1'}:
-       ...     g.add_course(course)
-       >>> for course in {'CSC263H1', 'STA237H1', 'CSC236H1', 'CSC165H1'}:
-       ...     g.add_course(course)
-       >>> g.add_prerequisites2({('MAT135H1', 'MAT136H1'), 'MAT137Y1', 'MAT157Y1'}, 'STA237H1')
-       >>> g.add_prerequisites2({('CSC148H1', 'CSC165H1'), 'CSC111H1'}, 'CSC236H1')
-       >>> g.add_prerequisites2({'STA237H1'}, 'CSC236H1')
-       >>> g.add_prerequisites2({'CSC236H1'}, 'CSC263H1')
-       >>> g.add_prerequisites2({'CSC263H1'}, 'CSC373H1')
-       >>> g.add_prerequisites2({'CSC263H1'}, 'CSC324H1')
-       >>> g.add_prerequisites2({'CSC324H1', 'CSC373H1'}, 'BCB410H1')
-       >>> g.add_prerequisites2({'BCH311H1', 'CSB349H1'}, 'BCB410H1')
-       >>> g.add_prerequisites2({('CHM135H1', 'CHM136H1'), 'CHM151Y1'}, 'BCH210H1')
-       >>> g.add_prerequisites2({'BCH210H1'}, 'BCH311H1')
-       >>> g.add_prerequisites2({'BIO130H1'}, 'BIO230H1')
-       >>> g.add_prerequisites2({('CHM135H1', 'CHM136H1'), 'CHM151Y1'}, 'BIO230H1')
-       >>> g.add_prerequisites2({('CHM135H1', 'CHM136H1'), 'CHM151Y1'}, 'HMB265H1')
-       >>> g.add_prerequisites2({'BIO120H1'}, 'HMB265H1')
-       >>> g.add_prerequisites2({'BIO130H1'}, 'HMB265H1')
-       >>> g.add_prerequisites2({'HMB265H1'}, 'CSB349H1')
-       >>> g.add_prerequisites2({'BIO230H1'}, 'CSB349H1')
-       >>> g.add_exclusion('CHM151Y1', {'CHM135H1', 'CHM136H1'})
-       >>> g.add_exclusion('CHM135H1', {'CHM151Y1'})
-       >>> g.add_exclusion('CHM136H1', {'CHM151Y1'})
-       >>> g.add_exclusion('MAT138H1', {'MAT137Y1', 'MAT157Y1'})
-       >>> g.add_exclusion('CSC148H1', {'CSC111H1'})
-       >>> g.add_exclusion('CSC110Y1', {'CSC108H1', 'CSC148H1', 'CSC165H1'})
-       >>> g.add_exclusion('CSC111H1', {'CSC108H1', 'CSC148H1', 'CSC165H1'})
-       >>> g.add_exclusion('CSC165H1', {'CSC111H1', 'CSC236H1'})
-       >>> g.add_exclusion('CSC108H1', {'CSC111H1', 'CSC110Y1'})
-       >>> len(g.get_all_prerequisites('BCB410H1'))
-       48
-       >>> len(g.get_all_prerequisites('BCH311H1'))
-       2
-       >>> len(g.get_all_prerequisites('BCH210H1'))
-       2
-       >>> len(g.get_all_prerequisites('CSB349H1'))
-       2
-       >>> len(g.get_all_prerequisites('CSC324H1'))
-       6
-       >>> len(g.get_all_prerequisites('CSC263H1'))
-       6
-       >>> len(g.get_all_prerequisites('CSC236H1'))
-       6
-       >>> g.get_prerequisites('BCB410H1', {'MAT137Y1', 'CSC110Y1', 'CSC111H1', 'BIO130H1', 'CHM135H1', 'CHM136H1'}, {'CSC324H1'}, 3.0)[0][0]
-       3.0
-
         """
         prereqs = self.get_all_prerequisites(course_code)
         new_prereqs = [prereq_set for prereq_set in prereqs if not any(prereq in exclude for prereq in prereq_set)]
@@ -232,16 +119,18 @@ class Graph:
                           self._courses[completed_course].exclusions}
         excluded = [prereq_set for prereq_set in not_completed if
                     not any(prereq in all_exclusions for prereq in prereq_set)]
+
+        for with_excluded in excluded.copy():
+            if any(excluded_pathway.issubset(with_excluded) and excluded_pathway != with_excluded for excluded_pathway
+                   in excluded.copy()):
+                excluded.remove(with_excluded)
+
         return [pathway for pathway in sorted([(count_credits(course_set), course_set) for course_set in excluded]) if
                 pathway[0] <= credit]
 
     def get_immediate_prerequisites(self, course_code: str) -> list:
+        """Gets the prerequisites immediately before a course.
         """
-        Gets the prerequisites immediately before a course.
-        """
-        if course_code in self._courses:
-            prerequisites = self._courses[course_code].prerequisites
-
 
     def get_dependents(self, course_code: str) -> set:
         """Returns a list of courses that are dependents to the given course
@@ -249,53 +138,10 @@ class Graph:
         """
         return {course.code for course in self._courses[course_code].dependents}
 
-
-class BoolOp(Expr):
-    """and/or class
-    """
-    op: str
-    operand: list[Expr]
-
-    def __init__(self, operator: str, operands: list[Expr]) -> None:
-        super().__init__()
-        self.op = operator
-        self.operand = operands
-
-    def evaluate(self) -> list:
-        """This function returns a list of sets of different possibilities to meet an outcome. For example, if we have
-        the BoolOp tree 'and' with operands A, B, and BoolOp('or', [C, D]), then we get
-        [{A, B, C}, {A, B, D}]
+    def course_to_tree(self, course_code: str) -> Tree:
+        """Returns a tree of prerequisites absed on the course code
         """
-        if not self.operand:
-            return []
-        else:
-            if self.op == 'and':
-                new_list = []
-                for operand in self.operand:
-                    new_list = combine_lists3(new_list, [operand.evaluate()]) \
-                        if isinstance(operand.evaluate(), set) \
-                        else combine_lists3(new_list, operand.evaluate())
-            else:
-                new_list = []
-                for operand in self.operand:
-                    new_list = new_list + operand.evaluate() \
-                        if isinstance(operand.evaluate(), list) \
-                        else new_list + [operand.evaluate()]
-            return new_list
-
-
-def combine_lists3(lst1: list[set], lst2: list[set]) -> list:
-    """Mutate list 1 such that each set in lst1 has exactly one elemnt of list2
-    for as many times as sets in lst2. Lst2 only has sets that have no tuples.
-    Preconditions:
-        - lst1 != [] or lst2 != []
-    """
-    if not lst1:
-        return lst2
-    elif not lst2:
-        return lst1
-    else:
-        return [element1.union(element2) for element1 in lst1 for element2 in lst2]
+        return self._courses[course_code].to_tree()
 
 
 def count_credits(course_set: set[str]) -> int:
@@ -312,7 +158,8 @@ if __name__ == '__main__':
     import python_ta
 
     python_ta.check_all(config={
-        'extra-imports': ['annotations'],  # the names (strs) of imported modules
+        'extra-imports': ['annotations', '_Course', 'Tree', 'BoolOp', 'expression_tree_classes'],
+        # the names (strs) of imported modules
         'allowed-io': [],  # the names (strs) of functions that call print/open/input
         'max-line-length': 120,
         'max-nested-blocks': 4
