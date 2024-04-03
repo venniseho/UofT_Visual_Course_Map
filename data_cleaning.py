@@ -39,38 +39,6 @@ def create_clean_data_file(filename: str) -> None:
     new_excel_file.save("clean_data.xlsx")      # Save the workbook to a file
 
 
-# def parse_file(filename: str) -> list[list[str]]:
-#     """
-#     Parses the file and turns it into a list of lists.
-#     Each sublist will be a row in the new Excel file
-#     """
-#     df = pandas.read_excel(filename)
-#
-#     # HEADER (COLUMN NAMES):
-#     # ['Course Name', 'Course Description', 'Hours', 'Prerequisites', 'Corequisites',
-#     # 'Distribution Requirements', 'Breadth Requirements', 'Exclusion']
-#     header = [col for col in df.columns]
-#     data_list = [header]
-#
-#     for index, row in df.iterrows():
-#         course_code = row[header[0]]
-#         course_description = row[header[1]]
-#         hours = row[header[2]]
-#         prerequisites = parse_cell(row, header[3])
-#         corequisites = parse_cell(row, header[4])
-#         distribution_reqs = row[header[5]]
-#         breadth_reqs = row[header[6]]
-#         exclusions = parse_cell(row, header[7])
-#
-#         data_row = [course_code, course_description, hours, prerequisites, corequisites,
-#                     distribution_reqs, breadth_reqs, exclusions]
-#         print(prerequisites)
-#
-#         data_list += data_row
-#
-#     return data_list
-
-
 def parse_cell(row: pandas, column: str) -> str:
     """
     Parses a specific cell (row[column]) and returns the cleaned string
@@ -173,6 +141,7 @@ def clean_extra_brackets(s: str, reverse: bool) -> str:
 def empty_brackets(s: str) -> str:
     """
     Cleans empty brackets from a string (s).
+
     >>> empty_brackets('a((d)gh)(ij)()')
     'a((d)gh)(ij)'
     >>> empty_brackets('()')

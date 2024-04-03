@@ -10,6 +10,7 @@ Creators:
 """
 import pandas
 from graph_course import Graph
+import re
 
 
 def load_graph(excel_file: str) -> Graph:
@@ -34,97 +35,203 @@ def load_graph(excel_file: str) -> Graph:
         prerequisites = row['Prerequisites']
         if not isinstance(prerequisites, float):
             prerequisites_list = parse_requisites(prerequisites)
-            print()
-            print(row['Course Code'])
-            print(prerequisites_list)
+
             for subset in prerequisites_list:
-                print(subset)
                 graph.add_prerequisites(subset, row['Course Code'])
 
-        # # corequisites
-        # corequisites = row['Corequisites']
-        # if not isinstance(corequisites, float):
-        #     corequisites_list = parse_requisites(corequisites)
-        #
-        #     for subset in corequisites_list:
-        #         graph.add_corequisites(row['Course Code'], subset)
-        #
-        # # exclusions
-        # exclusions = row['Exclusion']
-        # if not isinstance(exclusions, float):
-        #     exclusions_list = parse_requisites(exclusions)
-        #
-        #     for subset in exclusions_list:
-        #         graph.add_exclusion(row['Course Code'], subset)
+        # corequisites
+        corequisites = row['Corequisites']
+        if not isinstance(corequisites, float):
+            corequisites_list = parse_requisites(corequisites)
+
+            for subset in corequisites_list:
+                graph.add_corequisites(row['Course Code'], subset)
+
+        # exclusions
+        exclusions = row['Exclusion']
+        if not isinstance(exclusions, float):
+            exclusions_list = parse_requisites(exclusions)
+
+            for subset in exclusions_list:
+                graph.add_exclusion(row['Course Code'], subset)
 
     return graph
 
-
-def parse_requisites(requisites: str) -> list[set]:
+def parse_requisites(s: str):
     """
+    >>> parse_requisites('MAT137,CSC110,CSC111') == [{'MAT137'}, {'CSC110'}, {'CSC111'}]
+    True
+    >>> parse_requisites('MAT137/CSC110/CSC111') == [{'MAT137', 'CSC110', 'CSC111'}]
+    True
+    >>> parse_requisites('MAT137,CSC110/CSC111') == [{'MAT137'}, {'CSC110', 'CSC111'}]
+    True
     >>> parse_requisites('(MAT135/MAT136)') == [{'MAT136', 'MAT135'}]
+    True
+    >>> answer = [{({'MAT224H1', 'MAT247H1'}, 'MAT337H1'), 'MAT357H1'}]
+    >>> parse_requisites('(MAT224H1/MAT247H1,MAT337H1)/MAT357H1') == answer
     True
     >>> parse_requisites('(MAT135,MAT136)') == [{('MAT135', 'MAT136')}]
     True
     >>> answer = [{('MAT135', 'MAT136'), 'MAT137'}, {'CSC110'}, {'CSC111'}]
     >>> parse_requisites('MAT137/(MAT135,MAT136),CSC110,CSC111') == answer
     True
+    >>> answer =
+    >>> parse_requisites('MAT137/(MAT135,MAT136),((CSC110,CSC111)/(CSC108/CSC109, CSC165))') == answer
     """
-    lst = []
-    course_set = set()
 
-    curr = 0        # pointer that tracks where we currently are
-    prev = 0        # pointer that tracks where the start of the current word is
+    if s in '':
+        return []
 
-    while curr < len(requisites):
-        char = requisites[curr]
-        if char == '(':
-            end_of_word = requisites.find(')', curr)                          # last index
-            substring = requisites[curr + 1:end_of_word]
+    lst = split_string(s)
+    i = 1
 
-            if ',' in substring:
-                subset_list = requisites[curr + 1:end_of_word].split(',')           # split by comma
-                course_set.add(tuple(subset_list))
+    if not lst:
+        return []
 
-            elif '/' in substring:
-                subset_list = requisites[curr + 1:end_of_word].split('/')
-                [course_set.add(element) for element in subset_list]
+    brackets(lst)
 
-            curr = end_of_word
-            prev = curr + 1
+    lst[0] = {lst[0]}
 
-        elif char == ',':
-            if requisites[prev:curr] != '':
-                course_set.add(requisites[prev:curr])
-            lst.append(course_set)
-            course_set = set()
+    while i < len(lst):
 
-            prev = curr + 1
+        if lst[i] == '/':
+            lst.pop(i)
+            course = lst.pop(i)
+            lst[i - 1].add(course)
 
-        elif char == '/':
-            if requisites[prev:curr] != '':
-                course_set.add(requisites[prev:curr])
-
-            prev = curr + 1
-
-        curr += 1
-
-    if requisites[prev:curr] != '':
-        course_set.add(requisites[prev:curr])
-    lst.append(course_set)
+        elif lst[i] == ',':
+            lst.pop(i)
+            lst[i] = {lst[i]}
+            i += 1
 
     return lst
 
-# def check_courses(graph: Graph, course_set: set) -> set:
-#     """
-#     Check if all courses in course_set are in the graph.
-#     If course_set contains tuples, check if each individual course is in the graph.
-#     If a course is not in graph, remove it from the set.
-#     Returns an edited set.
-#     """
-#     for element in course_set:
-#         if isinstance(element, str):
-#             if element in graph.
+
+def brackets(lst):
+
+    while True:
+        try:
+            i = lst.index(')')
+        except ValueError:
+            return lst
+
+        close_bracket_index = i
+        open_bracket_index = close_bracket_index
+
+        while lst[open_bracket_index] != '(':
+            open_bracket_index -= 1
+
+        parse2_helper(lst, open_bracket_index)
+
+
+def parse2_helper(lst: list, start: int):
+    """
+    Preconditions:
+    - lst only contains one set of brackets (beginning and end)
+    - lst[start] == '('
+    """
+    i = start
+    lst.pop(i)
+
+    if lst[i + 1] == '/':
+        lst[i] = {lst[i]}
+
+    elif lst[i + 1] == ',':
+        lst[i] = [lst[i]]
+
+    i += 1
+
+    while True:
+        if lst[i] == ')':
+            break
+
+        if lst[i] == '/':
+            lst.pop(i)
+            if isinstance(lst[i - 1], set):
+                course = lst.pop(i)
+                lst[i - 1].add(course)
+
+            if isinstance(lst[i - 1], list):
+                if not isinstance(lst[i - 1][-1], set):
+                    lst[i - 1][-1] = {lst[i - 1][-1]}
+
+                course = lst.pop(i)
+                lst[i - 1][-1].add(course)
+
+            # course = lst.pop(i)
+            # lst[i - 1].append(course)
+            continue
+
+        elif lst[i] == ',':
+            lst.pop(i)
+            course = lst.pop(i)
+            lst[i - 1].append(course)
+
+    lst.pop(i)
+    lst[i - 1] = tuple(lst[i - 1])
+
+
+def split_string(s: str) -> list:
+    split_lst = []
+    curr_str = ''
+    for char in s:
+        if char in [',', '/', '(', ')']:
+            if curr_str != '':
+                split_lst.append(curr_str)
+                curr_str = ''
+
+            split_lst.append(char)
+
+        else:
+            curr_str += char
+
+    if curr_str != '':
+        split_lst.append(curr_str)
+
+    return split_lst
 
 if __name__ == '__main__':
-    load_graph('clean_data.xlsx')
+    # load_graph('clean_data.xlsx')
+
+    # [{'MAT137'}, {'CSC110'}, {'CSC111'}]
+    print(parse_requisites('MAT137,CSC110,CSC111'))
+
+    # [{'MAT137', 'CSC110', 'CSC111'}]
+    print(parse_requisites('MAT137/CSC110/CSC111'))
+
+    # [{'MAT137'}, {'CSC110', 'CSC111'}]
+    print(parse_requisites('MAT137,CSC110/CSC111'))
+
+    # [{'MAT136', 'MAT135'}]
+    print(parse_requisites('(MAT135/MAT136)'))
+
+    # [{('MAT135', 'MAT136')}]
+    print(parse_requisites('(MAT135,MAT136)'))
+
+    # [{('MAT135', 'MAT136'), 'MAT137'}]
+    print(parse_requisites('MAT137/(MAT135,MAT136)'))
+
+    # [{('MAT135', 'MAT136'), 'MAT137'}, {'CSC110'}]
+    print(parse_requisites('MAT137/(MAT135,MAT136),CSC110'))
+
+    # [{('MAT135', 'MAT136'), 'MAT137'}, {'CSC110'}, {'CSC111'}]
+    print(parse_requisites('MAT137/(MAT135,MAT136),CSC110,CSC111'))
+
+    # [{(('CSC110', 'CSC111'), 'CSC165')}]
+    print(parse_requisites('(CSC110,CSC111)/CSC165, CSC109'))
+    #
+    # [{'MAT137', ('MAT135', 'MAT136')}, {({(('CSC110', 'CSC111'), 'CSC165')})}]
+    print(parse_requisites('MAT137/(MAT135,MAT136),((CSC110,CSC111),CSC165)'))
+
+    print(parse_requisites('MAT137/(MAT135,MAT136),CSC110,CSC111'))
+
+    print(parse_requisites('(a,b)'))
+
+    print(parse_requisites('a/b/c,d/e,(f,g)'))
+    print(parse_requisites('(f,g)'))
+    print(parse_requisites('(a,(b,c))'))
+    # print(parse2('(a,(b,c/d))'))
+
+    # ((CSC110/CSC111, CSC112) / CSC165, CSC109)
+    #
+    # (({CSC110, CSC111}, CSC112))
