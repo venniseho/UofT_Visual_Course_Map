@@ -13,7 +13,7 @@ from degree import Degree
 from file_reader import load_graph
 
 # LOAD GRAPH
-# graph = load_graph('clean_data.xlsx')
+# graph = load_graph('clean_data_v3.xlsx')
 #
 # # Computer Science Specialist
 # cs_specialist = Degree('Computer Science Specialist', 'ASSPE1609', 'Specialist')
@@ -24,7 +24,7 @@ from file_reader import load_graph
 
 
 if __name__ == '__main__':
-    graph = load_graph('clean_data.xlsx')
+    graph = load_graph('clean_data_v3.xlsx')
 
     m = graph.get_prerequisites('MAT237Y1', {'MAT135H1'}, {'MAT137Y1'}, 3.0)
     print(m)

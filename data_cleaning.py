@@ -20,26 +20,35 @@ def create_clean_data_file(filename: str) -> None:
     header = [col for col in df.columns]
     new_sheet.append(header)
 
+    courses = []
+
+    # adds to courses list to check if courses exist (check_existence function)
+    for index, row in df.iterrows():
+        course_code = row[header[0]]
+        courses.append(course_code)
+
     # read data from original Excel sheet and add to new Excel sheet
     for index, row in df.iterrows():
         course_code = row[header[0]]
         course_description = row[header[1]]
         hours = row[header[2]]
-        prerequisites = parse_cell(row, header[3])
-        corequisites = parse_cell(row, header[4])
+        prerequisites = parse_cell(row, header[3], courses)
+        corequisites = parse_cell(row, header[4], courses)
         distribution_reqs = row[header[5]]
         breadth_reqs = row[header[6]]
-        exclusions = parse_cell(row, header[7])
+        exclusions = parse_cell(row, header[7], courses)
 
         data_row = [course_code, course_description, hours, prerequisites, corequisites,
                     distribution_reqs, breadth_reqs, exclusions]
 
         new_sheet.append(data_row)
 
-    new_excel_file.save("clean_data.xlsx")      # Save the workbook to a file
+    new_excel_file.save("clean_data_v3.xlsx")      # Save the workbook to a file
+
+    print('SUCCESS')
 
 
-def parse_cell(row: pandas, column: str) -> str:
+def parse_cell(row: pandas, column: str, courses: list[str]) -> str:
     """
     Parses a specific cell (row[column]) and returns the cleaned string
     """
@@ -49,7 +58,10 @@ def parse_cell(row: pandas, column: str) -> str:
         clean_cell = fix_spacing(clean_cell, '/')
         clean_cell = clean_cell.replace(' ', '')
 
-        # run clean_row twice to make sure we cleaned the data thoroughly
+        clean_cell = check_existence(courses, clean_cell)
+
+        # run clean_string thrice to make sure we cleaned the data thoroughly
+        clean_cell = clean_string(clean_cell)
         clean_cell = clean_string(clean_cell)
         clean_cell = clean_string(clean_cell)
 
@@ -76,6 +88,15 @@ def clean_string(s: str) -> str:
 
     new_s = remove_string(new_s, '/,', ',')
     new_s = remove_string(new_s, ',/', ',')
+
+    new_s = remove_string(new_s, ',)', ')')
+    new_s = remove_string(new_s, '/)', ')')
+
+    new_s = remove_string(new_s, '(,', '(')
+    new_s = remove_string(new_s, '(/', '(')
+
+    new_s = surrounding_brackets(new_s)
+    new_s = surrounding_course(new_s)
 
     new_s = new_s.strip(",/")
 
@@ -222,6 +243,114 @@ def remove_string(s: str, remove_s: str, replace_s: str = '') -> str:
     'MAT235Y1/MAT237Y1/MAT257Y1///,MAT223H1/MAT224H1/MAT240H1'
     """
     return s.replace(remove_s, replace_s)
+
+
+def check_existence(courses: list[str], requisites: str) -> str:
+    """
+    Checks if a given course exists in courses and removes it from requisites if it doesn't.
+
+    >>> c = ['CSC111', 'CSC110']
+    >>> r = 'MAT137'
+    >>> check_existence(c, r)
+    ''
+
+    >>> r = 'MAT135/MAT136,CSC111,CSC110'
+    >>> check_existence(c, r)
+    '/,CSC111,CSC110'
+    """
+    requisites_list = split_string(requisites)
+
+    i = 0
+    while i < len(requisites_list):
+        substring = requisites_list[i]
+        if substring.isalnum() and substring not in courses:
+            requisites_list.pop(i)
+
+        else:
+            i += 1
+
+    return ''.join(requisites_list)
+
+
+def split_string(s: str) -> list:
+    """
+    Splits a string into by comma, forward slash, and brackets and adds each element to a list.
+
+    >>> split_string('(MAT135,MAT136)/MAT137')
+    ['(', 'MAT135', ',', 'MAT136', ')', '/', 'MAT137']
+    """
+    split_lst = []
+    curr_str = ''
+    for char in s:
+        if char in [',', '/', '(', ')']:
+            if curr_str != '':
+                split_lst.append(curr_str)
+                curr_str = ''
+
+            split_lst.append(char)
+
+        else:
+            curr_str += char
+
+    if curr_str != '':
+        split_lst.append(curr_str)
+
+    return split_lst
+
+
+def surrounding_brackets(requisites: str) -> str:
+    """
+    Checks if the elements surrounding brackets are valid.
+
+    >>> s = 'z(MAT135/MAT136,5(CSC111,CSC110)a))'
+    >>> surrounding_brackets(s)
+    z,(MAT135/MAT136,5,(CSC111,CSC110),a))
+    """
+    requisites_list = split_string(requisites)
+
+    i = 1
+    while i < len(requisites_list) - 1:
+        substring = requisites_list[i]
+        if substring == '(' and not requisites_list[i - 1] in [',', '/', '(']:
+            requisites_list.insert(i, ',')
+
+        elif substring == ')' and not requisites_list[i + 1] in [',', '/', ')']:
+            requisites_list.insert(i + 1, ',')
+
+        else:
+            i += 1
+
+    return ''.join(requisites_list)
+
+
+def surrounding_course(requisites: str) -> str:
+    """
+    Checks if the elements surrounding course are valid (specifically the brackets).
+
+    >>> s = '(a)'
+    >>> surrounding_course(s)
+    'a'
+
+    >>> s = '((ab), c)'
+    >>> surrounding_course(s)
+    '(ab, c)'
+    """
+    requisites_list = split_string(requisites)
+
+    i = 1
+    while i < len(requisites_list) - 1:
+        substring = requisites_list[i]
+        if substring.isalnum() and requisites_list[i - 1] == '(' and requisites_list[i + 1] == ')':
+            requisites_list.pop(i + 1)
+            requisites_list.pop(i - 1)
+
+        else:
+            i += 1
+
+        # print(substring, requisites_list)
+        # input()
+
+    return ''.join(requisites_list)
 
 
 if __name__ == '__main__':

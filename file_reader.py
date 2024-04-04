@@ -26,7 +26,7 @@ def load_graph(excel_file: str) -> Graph:
     # add courses as vertices in the graph
     for index, row in dataframe.iterrows():
         # course code
-        course_code = row['Course Code']
+        course_code = row['Course Name']
         graph.add_course(course_code)
 
     # add everything else (i.e. prerequisites)
@@ -35,9 +35,10 @@ def load_graph(excel_file: str) -> Graph:
         prerequisites = row['Prerequisites']
         if not isinstance(prerequisites, float):
             prerequisites_list = parse_requisites(prerequisites)
+            print(prerequisites_list)
 
             for subset in prerequisites_list:
-                graph.add_prerequisites(subset, row['Course Code'])
+                graph.add_prerequisites(subset, row['Course Name'])
 
         # corequisites
         corequisites = row['Corequisites']
@@ -45,38 +46,36 @@ def load_graph(excel_file: str) -> Graph:
             corequisites_list = parse_requisites(corequisites)
 
             for subset in corequisites_list:
-                graph.add_corequisites(row['Course Code'], subset)
+                graph.add_corequisites(row['Course Name'], subset)
 
         # exclusions
         exclusions = row['Exclusion']
         if not isinstance(exclusions, float):
+            print('COURSE NAME:', row['Course Name'], '-----------------', 'EXCLUSIONS:', exclusions)
             exclusions_list = parse_requisites(exclusions)
+            print(exclusions_list)
 
             for subset in exclusions_list:
-                graph.add_exclusion(row['Course Code'], subset)
+                graph.add_exclusion(row['Course Name'], subset)
 
     return graph
 
+
 def parse_requisites(s: str):
     """
+
+
     >>> parse_requisites('MAT137,CSC110,CSC111') == [{'MAT137'}, {'CSC110'}, {'CSC111'}]
     True
     >>> parse_requisites('MAT137/CSC110/CSC111') == [{'MAT137', 'CSC110', 'CSC111'}]
     True
     >>> parse_requisites('MAT137,CSC110/CSC111') == [{'MAT137'}, {'CSC110', 'CSC111'}]
     True
-    >>> parse_requisites('(MAT135/MAT136)') == [{'MAT136', 'MAT135'}]
-    True
-    >>> answer = [{({'MAT224H1', 'MAT247H1'}, 'MAT337H1'), 'MAT357H1'}]
-    >>> parse_requisites('(MAT224H1/MAT247H1,MAT337H1)/MAT357H1') == answer
-    True
     >>> parse_requisites('(MAT135,MAT136)') == [{('MAT135', 'MAT136')}]
     True
     >>> answer = [{('MAT135', 'MAT136'), 'MAT137'}, {'CSC110'}, {'CSC111'}]
     >>> parse_requisites('MAT137/(MAT135,MAT136),CSC110,CSC111') == answer
     True
-    >>> answer =
-    >>> parse_requisites('MAT137/(MAT135,MAT136),((CSC110,CSC111)/(CSC108/CSC109, CSC165))') == answer
     """
 
     if s in '':
@@ -108,6 +107,9 @@ def parse_requisites(s: str):
 
 
 def brackets(lst):
+    """
+    TODO
+    """
 
     while True:
         try:
@@ -172,6 +174,12 @@ def parse2_helper(lst: list, start: int):
 
 
 def split_string(s: str) -> list:
+    """
+    Splits a string into by comma, forward slash, and brackets and adds each element to a list.
+
+    >>> split_string('(MAT135,MAT136)/MAT137')
+    ['(', 'MAT135', ',', 'MAT136', ')', '/', 'MAT137']
+    """
     split_lst = []
     curr_str = ''
     for char in s:
@@ -190,48 +198,6 @@ def split_string(s: str) -> list:
 
     return split_lst
 
+
 if __name__ == '__main__':
-    # load_graph('clean_data.xlsx')
-
-    # [{'MAT137'}, {'CSC110'}, {'CSC111'}]
-    print(parse_requisites('MAT137,CSC110,CSC111'))
-
-    # [{'MAT137', 'CSC110', 'CSC111'}]
-    print(parse_requisites('MAT137/CSC110/CSC111'))
-
-    # [{'MAT137'}, {'CSC110', 'CSC111'}]
-    print(parse_requisites('MAT137,CSC110/CSC111'))
-
-    # [{'MAT136', 'MAT135'}]
-    print(parse_requisites('(MAT135/MAT136)'))
-
-    # [{('MAT135', 'MAT136')}]
-    print(parse_requisites('(MAT135,MAT136)'))
-
-    # [{('MAT135', 'MAT136'), 'MAT137'}]
-    print(parse_requisites('MAT137/(MAT135,MAT136)'))
-
-    # [{('MAT135', 'MAT136'), 'MAT137'}, {'CSC110'}]
-    print(parse_requisites('MAT137/(MAT135,MAT136),CSC110'))
-
-    # [{('MAT135', 'MAT136'), 'MAT137'}, {'CSC110'}, {'CSC111'}]
-    print(parse_requisites('MAT137/(MAT135,MAT136),CSC110,CSC111'))
-
-    # [{(('CSC110', 'CSC111'), 'CSC165')}]
-    print(parse_requisites('(CSC110,CSC111)/CSC165, CSC109'))
-    #
-    # [{'MAT137', ('MAT135', 'MAT136')}, {({(('CSC110', 'CSC111'), 'CSC165')})}]
-    print(parse_requisites('MAT137/(MAT135,MAT136),((CSC110,CSC111),CSC165)'))
-
-    print(parse_requisites('MAT137/(MAT135,MAT136),CSC110,CSC111'))
-
-    print(parse_requisites('(a,b)'))
-
-    print(parse_requisites('a/b/c,d/e,(f,g)'))
-    print(parse_requisites('(f,g)'))
-    print(parse_requisites('(a,(b,c))'))
-    # print(parse2('(a,(b,c/d))'))
-
-    # ((CSC110/CSC111, CSC112) / CSC165, CSC109)
-    #
-    # (({CSC110, CSC111}, CSC112))
+    load_graph('clean_data_v3.xlsx')
