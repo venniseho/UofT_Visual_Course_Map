@@ -80,6 +80,7 @@ def parse_requisites(s: str):
         return []
 
     brackets(lst)
+    check_or(lst)
 
     lst[0] = [lst[0]]
 
@@ -141,16 +142,15 @@ def parse_helper(lst: list, start: int):
 
         if lst[i] == '/':
             lst.pop(i)
-            # if isinstance(lst[i - 1], set):
-            #     course = lst.pop(i)
-            #     lst[i - 1].append(course)
-            #
-            # if isinstance(lst[i - 1], list):
+            if lst[i] == '(':
+                parse_helper(lst, i)
+
+            if not isinstance(lst[i - 1][-1], list):
             #     if not isinstance(lst[i - 1][-1], set):
-            #         lst[i - 1][-1] = [lst[i - 1][-1]]
+                lst[i - 1][-1] = [lst[i - 1][-1]]
 
             course = lst.pop(i)
-            lst[i - 1].append(course)
+            lst[i - 1][-1].append(course)
 
             # course = lst.pop(i)
             # lst[i - 1].append(course)
@@ -158,11 +158,21 @@ def parse_helper(lst: list, start: int):
 
         elif lst[i] == ',':
             lst.pop(i)
+            if lst[i] == '(':
+                parse_helper(lst, i)
             course = lst.pop(i)
             lst[i - 1].append(course)
 
     lst.pop(i)
     lst[i - 1] = tuple(lst[i - 1])
+
+
+def check_or(lst: list):
+    for i in range(len(lst)):
+        element = lst[i]
+        if ((isinstance(element, tuple) or isinstance(element, list)) and
+                len(element) == 1 and isinstance(element[0], list)):
+            lst[i] = lst[i][0]
 
 
 def split_string(s: str) -> list:
@@ -200,9 +210,12 @@ if __name__ == '__main__':
 
     # print(graph._courses['MAT237Y1'].prerequisites.evaluate())
 
-    # lst = split_string('(BCH311H1/MGY311Y1/PSL350H1)')
+    # lst = split_string('(MAT133Y1/(MAT135H1,MAT136H1),MAT138H1/MAT246H1)')
     # parse_helper(lst, 0)
     # print(lst)
+    #
+    # s = '(BCH210H1/BCH242Y1),(BIO230H1/BIO255H1),(BCH311H1/MGY311Y1/PSL350H1)'
+    # print(parse_requisites(s))
 
     # import doctest
     #

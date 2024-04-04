@@ -10,6 +10,7 @@ Creators:
 - Vennise Ho
 """
 
+
 def commands() -> None:
     """
     Prints out a list of commands the user can use to interact with our interface.
