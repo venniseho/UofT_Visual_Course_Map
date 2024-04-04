@@ -35,39 +35,35 @@ def load_graph(excel_file: str) -> Graph:
         prerequisites = row['Prerequisites']
         if not isinstance(prerequisites, float):
             prerequisites_list = parse_requisites(prerequisites)
-            print('COURSE:', row['Course Name'], 'PREREQUISITES:', prerequisites_list)
 
             for subset in prerequisites_list:
                 graph.add_prerequisites(subset, row['Course Name'])
 
-        # # exclusions
-        # exclusions = row['Exclusion']
-        # if not isinstance(exclusions, float):
-        #     # print('COURSE NAME:', row['Course Name'], '-----------------', 'EXCLUSIONS:', exclusions)
-        #     exclusions_list = parse_requisites(exclusions)
-        #     # print(exclusions_list)
-        #
-        #     for subset in exclusions_list:
-        #         graph.add_exclusion(row['Course Name'], subset)
+        # exclusions
+        exclusions = row['Exclusion']
+        if not isinstance(exclusions, float):
+            exclusions_list = split_string(exclusions)
+            for substring in exclusions_list:
+                if substring.isalnum():
+                    graph.add_exclusion(row['Course Name'], substring)
 
     return graph
 
 
 def parse_requisites(s: str):
     """
-    Parses a string
+    Parses a string into
 
-    >>> parse_requisites('MAT137,CSC110,CSC111') == [{'MAT137'}, {'CSC110'}, {'CSC111'}]
-    True
-    >>> parse_requisites('MAT137/CSC110/CSC111') == [{'MAT137', 'CSC110', 'CSC111'}]
-    True
-    >>> parse_requisites('MAT137,CSC110/CSC111') == [{'MAT137'}, {'CSC110', 'CSC111'}]
-    True
-    >>> parse_requisites('(MAT135,MAT136)') == [{('MAT135', 'MAT136')}]
-    True
-    >>> answer = [{('MAT135', 'MAT136'), 'MAT137'}, {'CSC110'}, {'CSC111'}]
-    >>> parse_requisites('MAT137/(MAT135,MAT136),CSC110,CSC111') == answer
-    True
+    >>> parse_requisites('MAT137,CSC110,CSC111')
+    [['MAT137'], ['CSC110'], ['CSC111']]
+    >>> parse_requisites('MAT137/CSC110/CSC111')
+    [['MAT137', 'CSC110', 'CSC111']]
+    >>> parse_requisites('MAT137,CSC110/CSC111')
+    [['MAT137'], ['CSC110', 'CSC111']]
+    >>> parse_requisites('(MAT135,MAT136)')
+    [[('MAT135', 'MAT136')]]
+    >>> parse_requisites('MAT137/(MAT135,MAT136),CSC110,CSC111')
+    [['MAT137', ('MAT135', 'MAT136')], ['CSC110'], ['CSC111']]
     """
 
     if s in '':
@@ -79,7 +75,7 @@ def parse_requisites(s: str):
     if not lst:
         return []
 
-    brackets(lst)
+    parse_brackets(lst)
     check_or(lst)
 
     lst[0] = [lst[0]]
@@ -99,9 +95,10 @@ def parse_requisites(s: str):
     return lst
 
 
-def brackets(lst):
+def parse_brackets(lst: list):
     """
-    TODO
+    Helper function to parse_requisites that parses brackets specifically.
+    Calls parse_brackets_helper as a helper.
     """
 
     while True:
@@ -116,22 +113,21 @@ def brackets(lst):
         while lst[open_bracket_index] != '(':
             open_bracket_index -= 1
 
-        parse_helper(lst, open_bracket_index)
+        parse_brackets_helper(lst, open_bracket_index)
 
 
-def parse_helper(lst: list, start: int):
+def parse_brackets_helper(lst: list, start: int):
     """
+    Recursive helper for parse_brackets.
+    Takes in a list where start is the index of an open bracket recursively parses through the list
+    until it hits its corresponding closing bracket.
+
     Preconditions:
-    - lst only contains one set of brackets (beginning and end)
     - lst[start] == '('
     """
     i = start
     lst.pop(i)
 
-    # if lst[i + 1] == '/':
-    #     lst[i] = {lst[i]}
-    #
-    # elif lst[i + 1] == ',':
     lst[i] = [lst[i]]
 
     i += 1
@@ -143,23 +139,19 @@ def parse_helper(lst: list, start: int):
         if lst[i] == '/':
             lst.pop(i)
             if lst[i] == '(':
-                parse_helper(lst, i)
+                parse_brackets_helper(lst, i)
 
             if not isinstance(lst[i - 1][-1], list):
-            #     if not isinstance(lst[i - 1][-1], set):
                 lst[i - 1][-1] = [lst[i - 1][-1]]
 
             course = lst.pop(i)
             lst[i - 1][-1].append(course)
-
-            # course = lst.pop(i)
-            # lst[i - 1].append(course)
             continue
 
         elif lst[i] == ',':
             lst.pop(i)
             if lst[i] == '(':
-                parse_helper(lst, i)
+                parse_brackets_helper(lst, i)
             course = lst.pop(i)
             lst[i - 1].append(course)
 

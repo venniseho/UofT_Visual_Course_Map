@@ -28,6 +28,9 @@ class Graph:
         self._courses = {}
 
     def valid_course(self, course: str) -> bool:
+        """
+        Returns True if course in self._courses.
+        """
         if course in self._courses:
             return True
         return False
