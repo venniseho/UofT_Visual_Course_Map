@@ -1,11 +1,8 @@
 """Web scraper for Art Sci Course Calendar"""
 from typing import Any, Union
 import pandas as pd
-from IPython.core.display import HTML
-from IPython.display import display
 import requests
 import bs4
-from dataclasses import dataclass, field
 
 
 def name_finder(collection: dict[str, Any], html_value: bs4.PageElement) -> None:
@@ -64,7 +61,7 @@ def prerequisite_finder(collection: dict[str, Any], html_value: bs4.PageElement)
         clean_text_min_grade_clean = (clean_text_remove_tag.replace("(minimum ", "{").replace("grade ", "")
                                       .replace("%)", "}")).replace(".", "")
         clean_text_separation = ((clean_text_min_grade_clean.replace("/", " / ").replace(",", " , ")
-                                 .replace(";", " , ")).replace("(", " ( ").replace(")", " ) ")
+                                  .replace(";", " , ")).replace("(", " ( ").replace(")", " ) ")
                                  .replace("[", " ( ").replace("]", " ) ").split())
         clean_text_separation = [item for item in clean_text_separation if item in "()/,"
                                  or course_code_identifier(item)]
@@ -83,7 +80,7 @@ def corequisite_finder(collection: dict[str, Any], html_value: bs4.PageElement) 
         clean_text_min_grade_clean = (clean_text_remove_tag.replace("(minimum ", "{").replace("grade ", "")
                                       .replace("%)", "}")).replace(".", "")
         clean_text_separation = ((clean_text_min_grade_clean.replace("/", " / ").replace(",", " , ")
-                                 .replace(";", " , ")).replace("(", " ( ").replace(")", " ) ")
+                                  .replace(";", " , ")).replace("(", " ( ").replace(")", " ) ")
                                  .replace("[", " ( ").replace("]", " ) ").split())
         clean_text_separation = [item for item in clean_text_separation if item in "()/,"
                                  or course_code_identifier(item)]
@@ -101,7 +98,7 @@ def exclusion_finder(collection: dict[str, Any], html_value: bs4.PageElement) ->
         clean_text_min_grade_clean = (clean_text_remove_tag.replace("(minimum ", "{").replace("grade ", "")
                                       .replace("%)", "}")).replace(".", "")
         clean_text_separation = ((clean_text_min_grade_clean.replace("/", " / ").replace(",", " , ")
-                                 .replace(";", " , ")).replace("(", " ( ").replace(")", " ) ")
+                                  .replace(";", " , ")).replace("(", " ( ").replace(")", " ) ")
                                  .replace("[", " ( ").replace("]", " ) ").split())
         clean_text_separation = [item for item in clean_text_separation if item in "()/,"
                                  or course_code_identifier(item)]
@@ -151,7 +148,7 @@ def course_collector(element: bs4.PageElement, collector: dict[str, str]) -> Uni
 
 if __name__ == "__main__":
     dataframe = pd.DataFrame(columns=["Course Name", "Course Description", "Hours", "Prerequisites", "Corequisites",
-                     "Distribution Requirements", "Breadth Requirements", "Exclusion"])
+                                      "Distribution Requirements", "Breadth Requirements", "Exclusion"])
 
     for i in range(0, 170):
         URL = base_URL + str(i)
