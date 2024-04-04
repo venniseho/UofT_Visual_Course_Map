@@ -9,8 +9,11 @@ Creators:
 - Ryan Fu
 - Vennise Ho
 """
+from graph_course import Graph
+from plotly_visualization import display_plot
 
-def commands() -> None:
+
+def run_commands(g: Graph) -> None:
     """
     Prints out a list of commands the user can use to interact with our interface.
     """
@@ -23,7 +26,7 @@ def commands() -> None:
 
     print()
 
-    user_input = input('What would you like to do? ')
+    user_input = input('What would you like to do? ').lower()
 
     while user_input not in commands:
         user_input = input('Invalid input. What would you like to do? ')
@@ -31,10 +34,11 @@ def commands() -> None:
     # action after selecting valid command
 
     if user_input == 'help':
-        course_map_help()
+        course_map_help(commands)
 
 
-def course_map_help() -> None:
+
+def course_map_help(commands) -> None:
     """
     Tells the user what each command does.
     """
