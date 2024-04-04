@@ -53,7 +53,8 @@ class Graph:
         else:
             raise ValueError
 
-    def add_prerequisites(self, prereq: set, course: str) -> None:
+
+    def add_prerequisites(self, prereq: list, course: str) -> None:
         """
         Updates a courses prerequisites. This funcitons takes in a set of related courses or "options"
         to meet a prerequisite requirement. The function will add one of these courses to all the current sets
@@ -66,14 +67,26 @@ class Graph:
             prereq_v = []
             for course_code in prereq:
                 if isinstance(course_code, tuple):
-                    prereq_v.append(
-                        BoolOp('and', [self._courses[code] for code in course_code if course in self._courses]))
+                    prereq_v.append(self.tuple_to_bool(course_code))
                 else:
                     if course_code in self._courses:
                         prereq_v.append(self._courses[course_code])
             course_v.prerequisites.operand.append(BoolOp('or', prereq_v))
         else:
             raise ValueError
+
+    def tuple_to_bool(self, tup: tuple) -> BoolOp:
+        """Takes in a tuple of tuples and turns it into a BoolOp"""
+        bool_so_far = BoolOp('and', [])
+        for course_code in tup:
+            if isinstance(course_code, list):
+                temp_bool = BoolOp('or', [])
+                for code in course_code:
+                    temp_bool.operand.append(self._courses[code])
+                bool_so_far.operand.append(temp_bool)
+            else:
+                bool_so_far.operand.append(self._courses[course_code])
+        return bool_so_far
 
     def add_dependents(self, course: str, dependent: str) -> None:
         """Add a dependant to a given course
@@ -89,12 +102,12 @@ class Graph:
         """Returns a list of courses that are prerequisites to the given course in str form
         """
         prereqs = self._courses[course_code].prerequisites.evaluate()
-        for prereq_set in prereqs:
-            coreq = set()
-            for prereq in prereq_set:
-                coreqs = {co.code for co in self._courses[prereq].corequisites}
-                coreq.update(coreqs)
-            prereq_set.update(coreq)
+        # for prereq_set in prereqs:
+        #     coreq = set()
+        #     for prereq in prereq_set:
+        #         coreqs = {co.code for co in self._courses[prereq].corequisites}
+        #         coreq.update(coreqs)
+        #     prereq_set.update(coreq)
 
         prereq_exclusions = [set_prereq for set_prereq in prereqs if not any(
             self._courses[pre].are_exclusions(self._courses[exclusion]) for pre in set_prereq for exclusion in
@@ -111,6 +124,78 @@ class Graph:
         """Returns the pathways under the specified number of credits to meet the prerequisite for a given course
         given a set of courses the user has already completed and a set of courses the user wants to avoid.
         In the case of a tie, return all possibilities.
+           >>> g = Graph()
+   >>> for course in {'MAT135H1','MAT136H1', 'MAT137Y1', 'MAT157Y1', 'MAT223H1', 'MAT240H1', 'MAT237Y1', 'MAT235Y1', 'MAT138H1'}:
+   ...     g.add_course(course)
+   >>> for course in {'CSC413H1', 'CSC108H1', 'CSC148H1', 'CSC110Y1', 'CSC111H1', 'STA237H1'}:
+   ...     g.add_course(course)
+   >>> g.add_prerequisites({('MAT135H1', 'MAT136H1', 'MAT138H1'), 'MAT137Y1', 'MAT157Y1'}, 'MAT237Y1')
+   >>> g.add_prerequisites({('MAT135H1', 'MAT136H1'), 'MAT137Y1', 'MAT157Y1'}, 'MAT235Y1')
+   >>> g.add_prerequisites({'MAT237Y1', 'MAT235Y1'}, 'CSC413H1')
+   >>> g.add_prerequisites({'CSC148H1', 'CSC111H1'}, 'CSC413H1')
+   >>> g.add_prerequisites({'STA237H1'}, 'CSC413H1')
+   >>> g.add_prerequisites({'CSC108H1'}, 'CSC148H1')
+   >>> g.add_prerequisites({'CSC110Y1'}, 'CSC111H1')
+   >>> g.add_prerequisites({'MAT223H1', 'MAT240H1'}, 'MAT237Y1')
+   >>> g.add_prerequisites({('MAT135H1', 'MAT136H1'), 'MAT137Y1', 'MAT157Y1'}, 'STA237H1')
+   >>> g.get_all_prerequisites('CSC148H1')
+   [{'CSC108H1'}]
+   >>> len(g.get_all_prerequisites('CSC413H1'))
+   18
+   >>> for course in {'CHM135H1', 'CHM136H1', 'CHM151Y1', 'BIO120H1', 'BIO130H1', 'HMB265H1', 'BIO230H1'}:
+   ...     g.add_course(course)
+   >>> for course in {'BCH210H1', 'BCH311H1', 'CSB349H1'}:
+   ...     g.add_course(course)
+   >>> for course in {'CSC324H1', 'CSC373H1', 'BCB410H1'}:
+   ...     g.add_course(course)
+   >>> for course in {'CSC263H1', 'CSC236H1', 'CSC165H1'}:
+   ...     g.add_course(course)
+   >>> g.add_prerequisites({('CSC148H1', 'CSC165H1'), 'CSC111H1'}, 'CSC236H1')
+   >>> g.add_prerequisites({'STA237H1'}, 'CSC236H1')
+   >>> g.add_prerequisites({'CSC236H1'}, 'CSC263H1')
+   >>> g.add_prerequisites({'CSC263H1'}, 'CSC373H1')
+   >>> g.add_prerequisites({'CSC263H1'}, 'CSC324H1')
+   >>> g.add_prerequisites({'CSC324H1', 'CSC373H1'}, 'BCB410H1')
+   >>> g.add_prerequisites({'BCH311H1', 'CSB349H1'}, 'BCB410H1')
+   >>> g.add_prerequisites({('CHM135H1', 'CHM136H1'), 'CHM151Y1'}, 'BCH210H1')
+   >>> g.add_prerequisites({'BCH210H1'}, 'BCH311H1')
+   >>> g.add_prerequisites({'BIO130H1'}, 'BIO230H1')
+   >>> g.add_prerequisites({('CHM135H1', 'CHM136H1'), 'CHM151Y1'}, 'BIO230H1')
+   >>> g.add_prerequisites({('CHM135H1', 'CHM136H1'), 'CHM151Y1'}, 'HMB265H1')
+   >>> g.add_prerequisites({'BIO120H1'}, 'HMB265H1')
+   >>> g.add_prerequisites({'BIO130H1'}, 'HMB265H1')
+   >>> g.add_prerequisites({'HMB265H1'}, 'CSB349H1')
+   >>> g.add_prerequisites({'BIO230H1'}, 'CSB349H1')
+   >>> g.add_exclusion('CHM151Y1', {'CHM135H1', 'CHM136H1'})
+   >>> g.add_exclusion('CHM135H1', {'CHM151Y1'})
+   >>> g.add_exclusion('CHM136H1', {'CHM151Y1'})
+   >>> g.add_exclusion('MAT138H1', {'MAT137Y1', 'MAT157Y1'})
+   >>> g.add_exclusion('CSC148H1', {'CSC111H1'})
+   >>> g.add_exclusion('CSC110Y1', {'CSC108H1', 'CSC148H1', 'CSC165H1'})
+   >>> g.add_exclusion('CSC111H1', {'CSC108H1', 'CSC148H1', 'CSC165H1'})
+   >>> g.add_exclusion('CSC165H1', {'CSC111H1', 'CSC236H1'})
+   >>> g.add_exclusion('CSC108H1', {'CSC111H1', 'CSC110Y1'})
+   >>> g.add_corequisites('MAT240H1', {'MAT157Y1'})
+   >>> len(g.get_all_prerequisites('BCB410H1'))
+   48
+   >>> len(g.get_all_prerequisites('BCH311H1'))
+   2
+   >>> len(g.get_all_prerequisites('BCH210H1'))
+   2
+   >>> len(g.get_all_prerequisites('CSB349H1'))
+   2
+   >>> len(g.get_all_prerequisites('CSC324H1'))
+   6
+   >>> len(g.get_all_prerequisites('CSC263H1'))
+   6
+   >>> len(g.get_all_prerequisites('CSC236H1'))
+   6
+   >>> g.get_prerequisites('BCB410H1', {'MAT137Y1', 'CSC110Y1', 'CSC111H1', 'BIO130H1', 'CHM135H1', 'CHM136H1'}, {'CSC324H1'}, 4.0)[0][0]
+   3.0
+   >>> len(g.get_all_prerequisites('CSC413H1'))
+   14
+   >>> g.get_prerequisites('MAT237Y1', {'MAT135H1'}, {'MAT137Y1'}, 2.0)
+
         """
         prereqs = self.get_all_prerequisites(course_code)
         new_prereqs = [prereq_set for prereq_set in prereqs if not any(prereq in exclude for prereq in prereq_set)]
@@ -148,6 +233,8 @@ def count_credits(course_set: set[str]) -> int:
     """Count the number of credits in a set of strings\
     """
     return sum([1.0 if course[6] == 'Y' else 0.5 for course in course_set])
+
+
 
 
 if __name__ == '__main__':

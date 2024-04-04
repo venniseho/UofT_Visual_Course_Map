@@ -24,7 +24,7 @@ from file_reader import load_graph
 
 
 if __name__ == '__main__':
-    graph = load_graph('clean_data_v3.xlsx')
+    graph = load_graph('clean_data_v4.xlsx')
 
     m = graph.get_prerequisites('MAT237Y1', {'MAT135H1'}, {'MAT137Y1'}, 3.0)
     print(m)
