@@ -107,16 +107,19 @@ class _Course(Expr):
     """A course in a graph (acts as a vertex).
 
     Instance Attributes:
-    - code: the course code (ex. CSC111)
-    - prerequisites: the courses that point to this course in the form of a BoolOp
-    - exclusions: if a suer completed any of these exclusions, this coruse cannot ba taken
-    - description: course description
-    - name: official name of the course
-    - breadth: the breadth requirement it fulfills
-    - credit: number of credits the course is worth
+        - code: the course code (ex. CSC111)
+        - prerequisites: the courses that point to this course in the form of a BoolOp
+        - exclusions: if a suer completed any of these exclusions, this coruse cannot ba taken
+        - description: course description
+        - name: official name of the course
+        - breadth: the breadth requirement it fulfills
+        - credit: number of credits the course is worth
+
+    Representation Invariants:
+        - len(self.code) == 8
+        - self.code[6:8] == 'H1' or self.code[6:8] == 'Y1'
     """
     prerequisites: BoolOp
-    dependents: set[_Course]
     name: str
     description: str
     breadth: int
@@ -129,7 +132,6 @@ class _Course(Expr):
         super().__init__()
         self.code = code
         self.prerequisites = BoolOp('and', [])
-        self.dependents = set()
         self.credit = 1.0 if code[6] == 'Y' else 0.5
         self.exclusions = set()
 
@@ -154,13 +156,14 @@ class _Course(Expr):
 
 
 class BoolOp(Expr):
-    """and/or class. The code is and/or and it consists of different expressions (courses or other BoolOps), similar to an
-    and/or BoolOp in an AST.
+    """and/or class. The code is and/or and it consists of different expressions (courses or other BoolOps), similar to
+    an and/or BoolOp in an AST.
     Instance Attributes:
         - operand - list of expressions of this BoolOp
 
     Representations Invariants:
         - self.operand != []
+        - self.code == 'and' or self.code == 'or'
     """
 
     operand: list[Expr]

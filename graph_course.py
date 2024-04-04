@@ -17,19 +17,21 @@ class Graph:
     """A graph. Each vertice of the graph is a course.
 
     Representation Invariants:
+        - all(len(course) == 8 for course in self._courses)
+        - all(course[6:8] == 'H1' or course[6:8] == 'Y1' for course in self._courses)
     """
     # Private Instance Attributes:
     #   - _courses:
     #       A collection of the courses contained in this graph.
     #       Maps course code to _Course object.
+
     _courses: dict[str, _Course]
 
     def __init__(self) -> None:
         self._courses = {}
 
     def valid_course(self, course: str) -> bool:
-        """
-        Returns True if course in self._courses.
+        """Returns True if course in self._courses.
         """
         if course in self._courses:
             return True
@@ -38,12 +40,19 @@ class Graph:
     def add_course(self, course_code: str) -> None:
         """Add a course to this graph.
         The new course is not adjacent to any other vertices.
+        Preconditions:
+            - len(course_code) == 8
+            - course_code[6:8] == 'H1' or course_code[6:8] == 'Y1'
         """
         if course_code not in self._courses:
             self._courses[course_code] = _Course(course_code)
 
     def add_exclusion(self, course_code: str, exclusion: set[str]) -> None:
         """Add an exclusion to course code
+        Preconditions:
+            - len(course_code) == 8
+            - course_code[6:8] == 'H1' or course_code[6:8] == 'Y1'
+            - all(ex in self._courses for ex in exclusion)
         """
         if course_code in self._courses:
             for ex in exclusion:
@@ -53,13 +62,14 @@ class Graph:
             raise ValueError
 
     def add_prerequisites(self, prereq: list, course: str) -> None:
-        """
-        Updates a courses prerequisites. This funcitons takes in a set of related courses or "options"
+        """Updates a courses prerequisites. This funcitons takes in a set of related courses or "options"
         to meet a prerequisite requirement. The function will add one of these courses to all the current sets
         to create a list containing sets of all the different coursecombos needed to meet the prereq for that course.
         If a tuple is taken in, all elements need to be taken together.
+        Preconditions:
+            - len(course_code) == 8
+            - course_code[6:8] == 'H1' or course_code[6:8] == 'Y1'
         """
-        # checks if the course exists as a vertice in the graph
         if course in self._courses:
             course_v = self._courses[course]
             course_v.prerequisites.operand.append(self.create_boolop(prereq))
@@ -81,15 +91,11 @@ class Graph:
 
     def get_all_prerequisites(self, course_code: str) -> list:
         """Returns a list of courses that are prerequisites to the given course in str form
+        Preconditions:
+            - len(course_code) == 8
+            - course_code[6:8] == 'H1' or course_code[6:8] == 'Y1'
         """
         prereqs = self._courses[course_code].prerequisites.evaluate()
-        # for prereq_set in prereqs:
-        #     coreq = set()
-        #     for prereq in prereq_set:
-        #         coreqs = {co.code for co in self._courses[prereq].corequisites}
-        #         coreq.update(coreqs)
-        #     prereq_set.update(coreq)
-
         prereq_exclusions = [set_prereq for set_prereq in prereqs if not any(
             self._courses[pre].are_exclusions(self._courses[exclusion]) for pre in set_prereq for exclusion in
             set_prereq)]
@@ -105,7 +111,11 @@ class Graph:
         """Returns the pathways under the specified number of credits to meet the prerequisite for a given course
         given a set of courses the user has already completed and a set of courses the user wants to avoid.
         In the case of a tie, return all possibilities.
-
+        Preconditions:
+            - len(course_code) == 8
+            - course_code[6:8] == 'H1' or course_code[6:8] == 'Y1'
+            - all(ex in self._courses for ex in exclusion)
+            - all(code in self._courses for code in completed)
         """
         prereqs = self.get_all_prerequisites(course_code)
         new_prereqs = [prereq_set for prereq_set in prereqs if not any(prereq in exclude for prereq in prereq_set)]
@@ -123,18 +133,11 @@ class Graph:
         return [pathway for pathway in sorted([(count_credits(course_set), course_set) for course_set in excluded]) if
                 pathway[0] <= credit]
 
-    def get_immediate_prerequisites(self, course_code: str) -> list:
-        """Gets the prerequisites immediately before a course.
-        """
-
-    def get_dependents(self, course_code: str) -> set:
-        """Returns a list of courses that are dependents to the given course
-        ***DECIDE IF IT SHOULD RETURN A LIST OF _COURSE OR STR (COURSE_CODE)***
-        """
-        return {course.code for course in self._courses[course_code].dependents}
-
     def course_to_tree(self, course_code: str) -> Tree:
-        """Returns a tree of prerequisites absed on the course code
+        """Returns a tree of prerequisites based on the course code
+        Preconditions:
+            - len(course_code) == 8
+            - course_code[6:8] == 'H1' or course_code[6:8] == 'Y1'
         """
         return self._courses[course_code].to_tree()
 
@@ -145,7 +148,7 @@ class Graph:
         else:
             bool_so_far = BoolOp('or', [])
         for course_code in courses:
-            if isinstance(course_code,str):
+            if isinstance(course_code, str):
                 bool_so_far.operand.append(self._courses[course_code])
             else:
                 bool_so_far.operand.append(self.create_boolop(course_code))
@@ -153,11 +156,12 @@ class Graph:
 
 
 def count_credits(course_set: set[str]) -> int:
-    """Count the number of credits in a set of strings\
+    """Count the number of credits in a set of strings
+    Preconditions:
+        - all(len(course) == 8 for course in course_set)
+        - all(course[6:8] == 'H1' or course[6:8] == 'Y1' for course in course_set)
     """
     return sum([1.0 if course[6] == 'Y' else 0.5 for course in course_set])
-
-
 
 
 if __name__ == '__main__':

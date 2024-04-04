@@ -14,7 +14,7 @@ from expression_tree_classes import Tree
 
 
 class Plot():
-    """A recursive tree data structure.
+    """A recursive tree data structure with a coordinate system to plot the tree.
 
     Representation Invariants:
         - self._root is not None or self._subtrees == []
@@ -28,6 +28,13 @@ class Plot():
     #       self._root is None (representing an empty tree). However, this attribute
     #       may be empty when self._root is not None, which represents a tree consisting
     #       of just one item.
+    #   -_x:
+    #       The x coordinate of this tree node
+    #   -_y:
+    #       The y coordinate of this tree node
+    #   -_mod:
+    #       A temporary shift value.
+    #       This is used to tabulate shifts needed to ensure the tree is centered and non-overlapping.
     _root: Optional[Any]
     _x: float
     _mod: float
@@ -35,7 +42,10 @@ class Plot():
     _subtrees: list[Plot]
 
     def __init__(self, tree: Tree) -> None:
-        """Takes in a tree and converts it to a plot with assigned x and y values"""
+        """Takes in a tree and converts it to a plot with assigned x and y values
+        Preconditions:
+            - tree.is_empty() == False
+        """
         self._root = tree._root
         self._x, self._mod = -1, -1
         self._subtrees = [Plot(subtree) for subtree in tree._subtrees]
@@ -47,7 +57,10 @@ class Plot():
         return self._root
 
     def assign_coordinates(self) -> None:
-        """Updates the coordinates for the plot
+        """Updates the coordinates for the plot. This uses first, second, and thrid pass similar to
+        The Reingold Tilford Algorithm described in the following reference
+        Wong, K. J. (2023, September 25). Reingold Tilford Algorithm explained with walkthrough. Medium.
+        https://towardsdatascience.com/reingold-tilford-algorithm-explained-with-walkthrough-be5810e8ed93
         """
         self._y = self.depth() - 1
         self.assign_y()
@@ -71,7 +84,9 @@ class Plot():
         return edges_so_far
 
     def assign_y(self) -> None:
-        """Assign y coordinates of our plot"""
+        """Assign y coordinates of our plot. This assigns a y coordinate based on how far it is form the root,
+        where the root has y coordinate of the depth of the tree. If it is 1 away form the root, its y value
+        is the root y value minus 1."""
         for subtree in self._subtrees:
             subtree._y = self._y - 1
             subtree.assign_y()

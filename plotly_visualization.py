@@ -16,6 +16,9 @@ from graph_course import Graph
 
 def display_plot(g: Graph, course_code: str) -> None:
     """Given a graph of courses and a course_code, display it visually
+    Preconditions:
+        - len(course_code) == 8
+        - course_code[6:8] == 'H1' or course_code[6:8] == 'Y1'
     """
     p = Plot(g.course_to_tree(course_code))
     nodes = p.to_dict()
