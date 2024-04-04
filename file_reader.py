@@ -40,15 +40,15 @@ def load_graph(excel_file: str) -> Graph:
             for subset in prerequisites_list:
                 graph.add_prerequisites(subset, row['Course Name'])
 
-        # exclusions
-        exclusions = row['Exclusion']
-        if not isinstance(exclusions, float):
-            # print('COURSE NAME:', row['Course Name'], '-----------------', 'EXCLUSIONS:', exclusions)
-            exclusions_list = parse_requisites(exclusions)
-            # print(exclusions_list)
-
-            for subset in exclusions_list:
-                graph.add_exclusion(row['Course Name'], subset)
+        # # exclusions
+        # exclusions = row['Exclusion']
+        # if not isinstance(exclusions, float):
+        #     # print('COURSE NAME:', row['Course Name'], '-----------------', 'EXCLUSIONS:', exclusions)
+        #     exclusions_list = parse_requisites(exclusions)
+        #     # print(exclusions_list)
+        #
+        #     for subset in exclusions_list:
+        #         graph.add_exclusion(row['Course Name'], subset)
 
     return graph
 

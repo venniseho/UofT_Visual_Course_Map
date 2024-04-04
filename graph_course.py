@@ -9,6 +9,7 @@ Creators:
 - Vennise Ho
 """
 from __future__ import annotations
+from typing import Any
 from expression_tree_classes import _Course, Tree, BoolOp
 
 
@@ -64,14 +65,7 @@ class Graph:
         # checks if the course exists as a vertice in the graph
         if course in self._courses:
             course_v = self._courses[course]
-            prereq_v = []
-            for course_code in prereq:
-                if isinstance(course_code, tuple):
-                    prereq_v.append(self.tuple_to_bool(course_code))
-                else:
-                    if course_code in self._courses:
-                        prereq_v.append(self._courses[course_code])
-            course_v.prerequisites.operand.append(BoolOp('or', prereq_v))
+            course_v.prerequisites.operand.append(self.create_boolop(prereq))
         else:
             raise ValueError
 
@@ -79,7 +73,7 @@ class Graph:
         """Takes in a tuple of tuples and turns it into a BoolOp"""
         bool_so_far = BoolOp('and', [])
         for course_code in tup:
-            if isinstance(course_code, list):
+            if isinstance(course_code, tuple):
                 temp_bool = BoolOp('or', [])
                 for code in course_code:
                     temp_bool.operand.append(self._courses[code])
@@ -227,6 +221,21 @@ class Graph:
         """Returns a tree of prerequisites absed on the course code
         """
         return self._courses[course_code].to_tree()
+
+    def create_boolop(self, courses: Any) -> BoolOp:
+        """Takes in a list/tuple of courses with tuples and lists and returns a corresponding BoolOp"""
+        if isinstance(courses, tuple):
+            bool_so_far = BoolOp('and', [])
+        else:
+            bool_so_far = BoolOp('or', [])
+        for course_code in courses:
+            if isinstance(course_code,str):
+                bool_so_far.operand.append(self._courses[course_code])
+            else:
+                bool_so_far.operand.append(self.create_boolop(course_code))
+        return bool_so_far
+
+
 
 
 def count_credits(course_set: set[str]) -> int:
