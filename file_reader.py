@@ -55,7 +55,7 @@ def load_graph(excel_file: str) -> Graph:
 
 def parse_requisites(s: str):
     """
-
+    Parses a string
 
     >>> parse_requisites('MAT137,CSC110,CSC111') == [{'MAT137'}, {'CSC110'}, {'CSC111'}]
     True
