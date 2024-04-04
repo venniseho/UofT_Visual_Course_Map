@@ -21,6 +21,7 @@ def display_plot(g: Graph, course_code: str) -> None:
     nodes = p.to_dict()
     edges = p.get_edges()
     node_x, node_y, node_text = [], [], []
+    config = {'scrollZoom': True}
     for node in nodes:
         node_x.append(nodes[node][0])
         node_y.append(nodes[node][1])
@@ -50,9 +51,12 @@ def display_plot(g: Graph, course_code: str) -> None:
                                  text=[edge[0].get_root(), edge[1].get_root()],
                                  showlegend=False,
                                  ))
-    fig.update_xaxes(showgrid=False, zeroline=False, visible=False)
+
+    fig.update_xaxes(showgrid=False,
+                     zeroline=False,
+                     visible=False,)
     fig.update_yaxes(showgrid=False, zeroline=False, visible=False)
-    fig.show()
+    fig.show(config=config)
 
 
 if __name__ == '__main__':
