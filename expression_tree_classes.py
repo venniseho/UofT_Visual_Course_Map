@@ -79,15 +79,23 @@ class Tree:
 
 
 class Expr:
-    """A general expression in our abstract syntax tree
+    """An abstract expression class in our abstract syntax tree.
+    This expression can represent courses and BoolOps (and/or).
+
+    Instance Attributes:
+        - code:
+        The code used to represent this expression. In a BoolOp, this is an and/or and in a course,
+        this is the course code.
     """
     code: str
 
     def __init__(self) -> None:
-        pass
+        """Initialize an expression"""
 
     def evaluate(self) -> Any:
-        """Evaluates an expression, whetehr it;s a course or a BoolOp"""
+        """Evaluates an expression, whether it's a course or a BoolOp. Evaluate will produce a list of sets,
+        with each set containing the possible pathways to make the overall BoolOp true, or if it's a course,
+        a list of sets with pathways that satisfy prerequisites."""
         raise NotImplementedError
 
     def to_tree(self) -> Tree:
@@ -100,19 +108,20 @@ class _Course(Expr):
 
     Instance Attributes:
     - code: the course code (ex. CSC111)
-    - prerequisites: the courses that point to this course
-    - dependents: the courses that this course points to
+    - prerequisites: the courses that point to this course in the form of a BoolOp
+    - exclusions: if a suer completed any of these exclusions, this coruse cannot ba taken
+    - description: course description
+    - name: official name of the course
+    - breadth: the breadth requirement it fulfills
+    - credit: number of credits the course is worth
     """
     prerequisites: BoolOp
     dependents: set[_Course]
-
-    # extra / implement later
     name: str
     description: str
     breadth: int
     credit: float
     exclusions: set[_Course]
-    corequisites: set[_Course]
 
     def __init__(self, code: str) -> None:
         """Initialize a new course vertex with the given code, prerequisites, and dependents.
@@ -123,7 +132,6 @@ class _Course(Expr):
         self.dependents = set()
         self.credit = 1.0 if code[6] == 'Y' else 0.5
         self.exclusions = set()
-        self.corequisites = set()
 
     def evaluate(self) -> list:
         """Evaluate the course to give itself and its prerequisites
@@ -146,11 +154,19 @@ class _Course(Expr):
 
 
 class BoolOp(Expr):
-    """and/or class"""
+    """and/or class. The code is and/or and it consists of different expressions (courses or other BoolOps), similar to an
+    and/or BoolOp in an AST.
+    Instance Attributes:
+        - operand - list of expressions of this BoolOp
+
+    Representations Invariants:
+        - self.operand != []
+    """
 
     operand: list[Expr]
 
     def __init__(self, operator: str, operands: list[Expr]) -> None:
+        """Initialize our BoolOp class."""
         super().__init__()
         self.code = operator
         self.operand = operands
@@ -178,6 +194,7 @@ class BoolOp(Expr):
             return new_list
 
     def to_tree(self) -> Tree:
+        """Turns this BoolOp into a tree."""
         if self.operand == []:
             return Tree(self.code, [])
         else:
@@ -189,7 +206,7 @@ class BoolOp(Expr):
 
 def combine_lists(lst1: list[set], lst2: list[set]) -> list:
     """Mutate list 1 such that each set in lst1 has exactly one elemnt of list2
-    for as many times as sets in lst2. Lst2 only has sets that have no tuples.
+    for as many times as sets in lst2. lst2 only has sets that have no tuples.
     """
     if not lst1:
         return lst2

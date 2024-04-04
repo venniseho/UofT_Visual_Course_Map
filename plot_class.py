@@ -31,7 +31,6 @@ class Plot():
     _root: Optional[Any]
     _x: float
     _mod: float
-    _shift: float
     _y: int
     _subtrees: list[Plot]
 
@@ -39,7 +38,6 @@ class Plot():
         """Takes in a tree and converts it to a plot with assigned x and y values"""
         self._root = tree._root
         self._x, self._mod = -1, -1
-        self._shift = -1
         self._subtrees = [Plot(subtree) for subtree in tree._subtrees]
         self._y = -1
         self.assign_coordinates()
