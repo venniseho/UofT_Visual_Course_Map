@@ -1,0 +1,17 @@
+# UofT_Visual_Course_Map required libraries
+
+# Webscraping 
+typing
+pandas
+requests
+bs4
+
+# Testing and code checking
+pytest
+python-ta~=2.7.0
+
+# Graphics and data visualization
+plotly>=5.18.0
+
+
+
