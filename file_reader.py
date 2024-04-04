@@ -35,7 +35,7 @@ def load_graph(excel_file: str) -> Graph:
         prerequisites = row['Prerequisites']
         if not isinstance(prerequisites, float):
             prerequisites_list = parse_requisites(prerequisites)
-            print(prerequisites_list)
+            print('COURSE:', row['Course Name'], 'PREREQUISITES:', prerequisites_list)
 
             for subset in prerequisites_list:
                 graph.add_prerequisites(subset, row['Course Name'])
@@ -43,9 +43,9 @@ def load_graph(excel_file: str) -> Graph:
         # exclusions
         exclusions = row['Exclusion']
         if not isinstance(exclusions, float):
-            print('COURSE NAME:', row['Course Name'], '-----------------', 'EXCLUSIONS:', exclusions)
+            # print('COURSE NAME:', row['Course Name'], '-----------------', 'EXCLUSIONS:', exclusions)
             exclusions_list = parse_requisites(exclusions)
-            print(exclusions_list)
+            # print(exclusions_list)
 
             for subset in exclusions_list:
                 graph.add_exclusion(row['Course Name'], subset)
@@ -141,16 +141,16 @@ def parse_helper(lst: list, start: int):
 
         if lst[i] == '/':
             lst.pop(i)
-            if isinstance(lst[i - 1], set):
-                course = lst.pop(i)
-                lst[i - 1].append(course)
+            # if isinstance(lst[i - 1], set):
+            #     course = lst.pop(i)
+            #     lst[i - 1].append(course)
+            #
+            # if isinstance(lst[i - 1], list):
+            #     if not isinstance(lst[i - 1][-1], set):
+            #         lst[i - 1][-1] = [lst[i - 1][-1]]
 
-            if isinstance(lst[i - 1], list):
-                if not isinstance(lst[i - 1][-1], set):
-                    lst[i - 1][-1] = [lst[i - 1][-1]]
-
-                course = lst.pop(i)
-                lst[i - 1][-1].append(course)
+            course = lst.pop(i)
+            lst[i - 1].append(course)
 
             # course = lst.pop(i)
             # lst[i - 1].append(course)
@@ -194,7 +194,15 @@ def split_string(s: str) -> list:
 if __name__ == '__main__':
     graph = load_graph('clean_data_v4.xlsx')
 
-    print(graph._courses['MAT237Y1'].prerequisites.evaluate())
+    # print(graph._courses['MAT237Y1'].prerequisites.evaluate())
+
+    # graph = load_graph('clean_data_v4.xlsx')
+
+    # print(graph._courses['MAT237Y1'].prerequisites.evaluate())
+
+    # lst = split_string('(BCH311H1/MGY311Y1/PSL350H1)')
+    # parse_helper(lst, 0)
+    # print(lst)
 
     # import doctest
     #
