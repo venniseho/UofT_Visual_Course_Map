@@ -43,7 +43,7 @@ def create_clean_data_file(filename: str) -> None:
 
         new_sheet.append(data_row)
 
-    new_excel_file.save("clean_data_v3.xlsx")      # Save the workbook to a file
+    new_excel_file.save("clean_data_v4.xlsx")      # Save the workbook to a file
 
     print('SUCCESS')
 
@@ -304,7 +304,7 @@ def surrounding_brackets(requisites: str) -> str:
 
     >>> s = 'z(MAT135/MAT136,5(CSC111,CSC110)a))'
     >>> surrounding_brackets(s)
-    z,(MAT135/MAT136,5,(CSC111,CSC110),a))
+    'z,(MAT135/MAT136,5,(CSC111,CSC110),a))'
     """
     requisites_list = split_string(requisites)
 
@@ -354,18 +354,18 @@ def surrounding_course(requisites: str) -> str:
 
 
 if __name__ == '__main__':
-    # create_clean_data_file('output.xlsx')
+    create_clean_data_file('output.xlsx')
 
-    import doctest
-
-    doctest.testmod(verbose=True)
-
-    import python_ta
-
-    python_ta.check_all(config={
-        'extra-imports': ['annotations', '_Course', 'Tree', 'BoolOp', 'expression_tree_classes'],
-        # the names (strs) of imported modules
-        'allowed-io': [],  # the names (strs) of functions that call print/open/input
-        'max-line-length': 120,
-        'max-nested-blocks': 4
-    })
+    # import doctest
+    #
+    # doctest.testmod(verbose=True)
+    #
+    # import python_ta
+    #
+    # python_ta.check_all(config={
+    #     'extra-imports': ['annotations', '_Course', 'Tree', 'BoolOp', 'expression_tree_classes'],
+    #     # the names (strs) of imported modules
+    #     'allowed-io': [],  # the names (strs) of functions that call print/open/input
+    #     'max-line-length': 120,
+    #     'max-nested-blocks': 4
+    # })

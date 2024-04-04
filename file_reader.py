@@ -89,18 +89,18 @@ def parse_requisites(s: str):
 
     brackets(lst)
 
-    lst[0] = {lst[0]}
+    lst[0] = [lst[0]]
 
     while i < len(lst):
 
         if lst[i] == '/':
             lst.pop(i)
             course = lst.pop(i)
-            lst[i - 1].add(course)
+            lst[i - 1].append(course)
 
         elif lst[i] == ',':
             lst.pop(i)
-            lst[i] = {lst[i]}
+            lst[i] = [lst[i]]
             i += 1
 
     return lst
@@ -123,10 +123,10 @@ def brackets(lst):
         while lst[open_bracket_index] != '(':
             open_bracket_index -= 1
 
-        parse2_helper(lst, open_bracket_index)
+        parse_helper(lst, open_bracket_index)
 
 
-def parse2_helper(lst: list, start: int):
+def parse_helper(lst: list, start: int):
     """
     Preconditions:
     - lst only contains one set of brackets (beginning and end)
@@ -135,11 +135,11 @@ def parse2_helper(lst: list, start: int):
     i = start
     lst.pop(i)
 
-    if lst[i + 1] == '/':
-        lst[i] = {lst[i]}
-
-    elif lst[i + 1] == ',':
-        lst[i] = [lst[i]]
+    # if lst[i + 1] == '/':
+    #     lst[i] = {lst[i]}
+    #
+    # elif lst[i + 1] == ',':
+    lst[i] = [lst[i]]
 
     i += 1
 
@@ -151,14 +151,14 @@ def parse2_helper(lst: list, start: int):
             lst.pop(i)
             if isinstance(lst[i - 1], set):
                 course = lst.pop(i)
-                lst[i - 1].add(course)
+                lst[i - 1].append(course)
 
             if isinstance(lst[i - 1], list):
                 if not isinstance(lst[i - 1][-1], set):
-                    lst[i - 1][-1] = {lst[i - 1][-1]}
+                    lst[i - 1][-1] = [lst[i - 1][-1]]
 
                 course = lst.pop(i)
-                lst[i - 1][-1].add(course)
+                lst[i - 1][-1].append(course)
 
             # course = lst.pop(i)
             # lst[i - 1].append(course)
@@ -200,19 +200,21 @@ def split_string(s: str) -> list:
 
 
 if __name__ == '__main__':
-    # load_graph('clean_data_v3.xlsx')
+    graph = load_graph('clean_data_v4.xlsx')
 
-    import doctest
+    print(graph._courses['MAT237Y1'].prerequisites.evaluate())
 
-    doctest.testmod(verbose=True)
-
-    import python_ta
-
-    python_ta.check_all(config={
-        'extra-imports': ['annotations', 'Graph', '_Course', 'Tree', 'BoolOp', 'expression_tree_classes',
-                          'plotly.graph_objects', 'Plot', 'graph_course', 'plot_class'],
-        # the names (strs) of imported modules
-        'allowed-io': [],  # the names (strs) of functions that call print/open/input
-        'max-line-length': 120,
-        'max-nested-blocks': 4
-    })
+    # import doctest
+    #
+    # doctest.testmod(verbose=True)
+    #
+    # import python_ta
+    #
+    # python_ta.check_all(config={
+    #     'extra-imports': ['annotations', 'Graph', '_Course', 'Tree', 'BoolOp', 'expression_tree_classes',
+    #                       'plotly.graph_objects', 'Plot', 'graph_course', 'plot_class'],
+    #     # the names (strs) of imported modules
+    #     'allowed-io': [],  # the names (strs) of functions that call print/open/input
+    #     'max-line-length': 120,
+    #     'max-nested-blocks': 4
+    # })
