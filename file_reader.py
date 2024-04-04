@@ -40,14 +40,6 @@ def load_graph(excel_file: str) -> Graph:
             for subset in prerequisites_list:
                 graph.add_prerequisites(subset, row['Course Name'])
 
-        # corequisites
-        corequisites = row['Corequisites']
-        if not isinstance(corequisites, float):
-            corequisites_list = parse_requisites(corequisites)
-
-            for subset in corequisites_list:
-                graph.add_corequisites(row['Course Name'], subset)
-
         # exclusions
         exclusions = row['Exclusion']
         if not isinstance(exclusions, float):
