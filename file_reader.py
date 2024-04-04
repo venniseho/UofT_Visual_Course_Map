@@ -200,4 +200,19 @@ def split_string(s: str) -> list:
 
 
 if __name__ == '__main__':
-    load_graph('clean_data_v3.xlsx')
+    # load_graph('clean_data_v3.xlsx')
+
+    import doctest
+
+    doctest.testmod(verbose=True)
+
+    import python_ta
+
+    python_ta.check_all(config={
+        'extra-imports': ['annotations', 'Graph', '_Course', 'Tree', 'BoolOp', 'expression_tree_classes',
+                          'plotly.graph_objects', 'Plot', 'graph_course', 'plot_class'],
+        # the names (strs) of imported modules
+        'allowed-io': [],  # the names (strs) of functions that call print/open/input
+        'max-line-length': 120,
+        'max-nested-blocks': 4
+    })
