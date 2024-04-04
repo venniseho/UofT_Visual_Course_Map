@@ -12,6 +12,7 @@ from graph_course import Graph
 from degree import Degree
 from file_reader import load_graph
 from plotly_visualization import display_plot
+import pprint
 
 
 # LOAD GRAPH
@@ -30,11 +31,11 @@ def run_commands(g: Graph) -> None:
     Prints out a list of commands the user can use to interact with our interface.
     """
     commands = ['Get Prerequisites', 'Display Course', 'Help', "Quit"]
-    print(f'LIST OF COMMANDS:'
-          f'- Get Prerequisites'
-          f'- Display Course'
-          f'- Help'
-          f'- Quit')
+    print(f'LIST OF COMMANDS:\n'
+          f'- Get Prerequisites\n'
+          f'- Display Course\n'
+          f'- Help\n'
+          f'- Quit\n')
 
     print()
 
@@ -51,9 +52,9 @@ def run_commands(g: Graph) -> None:
                 print("Not a valid course name!")
 
         elif user_input == "prerequisites":
-            course = input("Which course do you want the prerequistes for?").upper()
+            course = input("Which course do you want the prerequisites for?").upper()
             if g.valid_course(course):
-                print(g.get_prerequisites(course, set(), set(), 20.0))
+                pprint.pp(g.get_prerequisites(course, set(), set(), 20.0))
             else:
                 print("Not a valid course name!")
         user_input = input('What would you like to do? ').lower()
