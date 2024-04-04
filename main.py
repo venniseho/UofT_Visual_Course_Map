@@ -51,9 +51,9 @@ def run_commands(g: Graph) -> None:
                 print("Not a valid course name!")
 
         elif user_input == "prerequisites":
-            course = input("Which course do you want the prerequistes for?")
+            course = input("Which course do you want the prerequistes for?").upper()
             if g.valid_course(course):
-                print(g.get_prerequisites(course, set(), set(), 1))
+                print(g.get_prerequisites(course, set(), set(), 20.0))
             else:
                 print("Not a valid course name!")
         user_input = input('What would you like to do? ').lower()
@@ -110,8 +110,8 @@ if __name__ == '__main__':
     print(graph.get_prerequisites('STA237H1', {'MAT135H1'}, {'MAT137Y1'}, 3.0))
     print(graph.get_all_prerequisites('STA237H1'))
 
-    p = graph._courses['MAT237Y1'].prerequisites
-    print(p.evaluate())
+    # p = graph._courses['MAT237Y1'].prerequisites
+    # print(p.evaluate())
 
     print(graph.get_all_prerequisites('MAT237Y1'))
 
