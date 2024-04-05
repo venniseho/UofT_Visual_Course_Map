@@ -10,15 +10,11 @@ Creators:
 """
 import pandas
 from graph_course import Graph
-import re
 
 
 def load_graph(excel_file: str) -> Graph:
     """
     Loads information from an excel_file into an instance of the graph class.
-
-    'MAT137 / (MAT135,MAT136), CSC110, CSC111'
-    [{MAT137, (MAT135, MAT136)}, {CSC110}, {CSC111}]
     """
     graph = Graph()
     dataframe = pandas.read_excel(excel_file)
@@ -50,9 +46,9 @@ def load_graph(excel_file: str) -> Graph:
     return graph
 
 
-def parse_requisites(s: str):
+def parse_requisites(s: str) -> list[list]:
     """
-    Parses a string into
+    Parses a string of requisites into the format we want.
 
     >>> parse_requisites('MAT137,CSC110,CSC111')
     [['MAT137'], ['CSC110'], ['CSC111']]
@@ -95,7 +91,7 @@ def parse_requisites(s: str):
     return lst
 
 
-def parse_brackets(lst: list):
+def parse_brackets(lst: list) -> None:
     """
     Helper function to parse_requisites that parses brackets specifically.
     Calls parse_brackets_helper as a helper.
@@ -116,7 +112,7 @@ def parse_brackets(lst: list):
         parse_brackets_helper(lst, open_bracket_index)
 
 
-def parse_brackets_helper(lst: list, start: int):
+def parse_brackets_helper(lst: list, start: int) -> None:
     """
     Recursive helper for parse_brackets.
     Takes in a list where start is the index of an open bracket recursively parses through the list
@@ -159,11 +155,14 @@ def parse_brackets_helper(lst: list, start: int):
     lst[i - 1] = tuple(lst[i - 1])
 
 
-def check_or(lst: list):
+def check_or(lst: list) -> None:
+    """
+    If any elements of the list are tuples containing only one list, drop the tuple brackets.
+    - tuples are 'and' but sometimes there is only a slash (meaning or).
+    """
     for i in range(len(lst)):
         element = lst[i]
-        if ((isinstance(element, tuple) or isinstance(element, list)) and
-                len(element) == 1 and isinstance(element[0], list)):
+        if ((isinstance(element, list)) and len(element) == 1 and isinstance(element[0], list)):
             lst[i] = lst[i][0]
 
 
@@ -194,32 +193,15 @@ def split_string(s: str) -> list:
 
 
 if __name__ == '__main__':
-    graph = load_graph('clean_data_v4.xlsx')
+    import doctest
 
-    # print(graph._courses['MAT237Y1'].prerequisites.evaluate())
+    doctest.testmod(verbose=True)
 
-    # graph = load_graph('clean_data_v4.xlsx')
+    import python_ta
 
-    # print(graph._courses['MAT237Y1'].prerequisites.evaluate())
-
-    # lst = split_string('(MAT133Y1/(MAT135H1,MAT136H1),MAT138H1/MAT246H1)')
-    # parse_helper(lst, 0)
-    # print(lst)
-    #
-    # s = '(BCH210H1/BCH242Y1),(BIO230H1/BIO255H1),(BCH311H1/MGY311Y1/PSL350H1)'
-    # print(parse_requisites(s))
-
-    # import doctest
-    #
-    # doctest.testmod(verbose=True)
-    #
-    # import python_ta
-    #
-    # python_ta.check_all(config={
-    #     'extra-imports': ['annotations', 'Graph', '_Course', 'Tree', 'BoolOp', 'expression_tree_classes',
-    #                       'plotly.graph_objects', 'Plot', 'graph_course', 'plot_class'],
-    #     # the names (strs) of imported modules
-    #     'allowed-io': [],  # the names (strs) of functions that call print/open/input
-    #     'max-line-length': 120,
-    #     'max-nested-blocks': 4
-    # })
+    python_ta.check_all(config={
+        'extra-imports': ['pandas', 'graph_course'],    # the names (strs) of imported modules
+        'allowed-io': [],  # the names (strs) of functions that call print/open/input
+        'max-line-length': 120,
+        'max-nested-blocks': 4
+    })

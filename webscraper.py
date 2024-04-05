@@ -180,3 +180,16 @@ if __name__ == "__main__":
                                                    collector["Breadth Requirements"],
                                                    collector["Exclusion"]]
     dataframe.to_excel('output.xlsx', index=False)
+
+    import doctest
+
+    doctest.testmod(verbose=True)
+
+    import python_ta
+
+    python_ta.check_all(config={
+        'extra-imports': ['pandas', 'graph_course'],  # the names (strs) of imported modules
+        'allowed-io': [],  # the names (strs) of functions that call print/open/input
+        'max-line-length': 120,
+        'max-nested-blocks': 4
+    })
