@@ -17,7 +17,7 @@ def create_clean_data_file(filename: str) -> None:
     # HEADER (COLUMN NAMES):
     # ['Course Name', 'Course Description', 'Hours', 'Prerequisites', 'Corequisites',
     # 'Distribution Requirements', 'Breadth Requirements', 'Exclusion']
-    header = [col for col in df.columns]
+    header = list(df.columns)
     new_sheet.append(header)
 
     courses = []
@@ -45,16 +45,14 @@ def create_clean_data_file(filename: str) -> None:
 
     new_excel_file.save("clean_data_v4.xlsx")      # Save the workbook to a file
 
-    print('SUCCESS')
-
 
 def parse_cell(row: pandas, column: str, courses: list[str]) -> str:
     """
-    Parses a specific cell (row[column]) and returns the cleaned string
+    Parses a specific cell (row[column]) and returns the cleaned string.
     """
     clean_cell = row[column]
 
-    if type(clean_cell) is not float:
+    if not isinstance(clean_cell, float):
         clean_cell = fix_spacing(clean_cell, '/')
         clean_cell = clean_cell.replace(' ', '')
 
@@ -130,6 +128,9 @@ def clean_extra_brackets(s: str, reverse: bool) -> str:
     Cleans the extra (unbalanced) brackets from a string (s).
     If reverse is True, the function cleans extra '(' brackets.
     If reverse is False, the function cleans extra ')' brackets.
+
+    Preconditions:
+    - all([char != ' ' for char in s])
     """
     bracket_count = 0
     new_s = ''
@@ -138,8 +139,7 @@ def clean_extra_brackets(s: str, reverse: bool) -> str:
         s = s[::-1]
         factor = -1
 
-    for i in range(len(s)):
-        char = s[i]
+    for char in s:
         if char == '(':
             bracket_count += 1 * factor
 
@@ -162,6 +162,11 @@ def clean_extra_brackets(s: str, reverse: bool) -> str:
 def empty_brackets(s: str) -> str:
     """
     Cleans empty brackets from a string (s).
+
+    Preconditions:
+    - sum([1 if char == '(' else -1 if char == ')' else 0 for char in s]) == 0
+
+    (All brackets must be balanced.)
 
     >>> empty_brackets('a((d)gh)(ij)()')
     'a((d)gh)(ij)'
@@ -198,6 +203,8 @@ def empty_brackets_helper(s: str, bracket_depth: int) -> tuple[str, int]:
 
     Preconditions:
     - sum([1 if char == '(' else -1 if char == ')' else 0 for char in s]) == 0
+
+    (All brackets must be balanced.)
     """
     if s == '()':
         return ('', 2)
@@ -231,6 +238,9 @@ def empty_brackets_helper(s: str, bracket_depth: int) -> tuple[str, int]:
 def remove_duplicates(s: str, char: str) -> str:
     """
     Removes duplicates of char from a string (s).
+
+    Preconditions:
+    - all([char != ' ' for char in s])
     """
     return char.join([i for i in s.split(char) if i != ''])
 
@@ -238,9 +248,14 @@ def remove_duplicates(s: str, char: str) -> str:
 def remove_string(s: str, remove_s: str, replace_s: str = '') -> str:
     """
     Removes all instances of remove_s from s and replace it with replace_s.
+
     >>> my_s = 'MAT235Y1/MAT237Y1/MAT257Y1/(,)/(,)/(,),MAT223H1/MAT224H1/MAT240H1'
     >>> remove_string(my_s, '(,)')
     'MAT235Y1/MAT237Y1/MAT257Y1///,MAT223H1/MAT224H1/MAT240H1'
+
+
+    Preconditions:
+    - all([char != ' ' for char in s])
     """
     return s.replace(remove_s, replace_s)
 
@@ -257,6 +272,10 @@ def check_existence(courses: list[str], requisites: str) -> str:
     >>> r = 'MAT135/MAT136,CSC111,CSC110'
     >>> check_existence(c, r)
     '/,CSC111,CSC110'
+
+
+    Preconditions:
+    - all([char != ' ' for char in s])
     """
     requisites_list = split_string(requisites)
 
@@ -278,6 +297,9 @@ def split_string(s: str) -> list:
 
     >>> split_string('(MAT135,MAT136)/MAT137')
     ['(', 'MAT135', ',', 'MAT136', ')', '/', 'MAT137']
+
+    Preconditions:
+    - all([char != ' ' for char in s])
     """
     split_lst = []
     curr_str = ''
@@ -305,6 +327,9 @@ def surrounding_brackets(requisites: str) -> str:
     >>> s = 'z(MAT135/MAT136,5(CSC111,CSC110)a))'
     >>> surrounding_brackets(s)
     'z,(MAT135/MAT136,5,(CSC111,CSC110),a))'
+
+    Preconditions:
+    - all([char != ' ' for char in s])
     """
     requisites_list = split_string(requisites)
 
@@ -327,13 +352,16 @@ def surrounding_course(requisites: str) -> str:
     """
     Checks if the elements surrounding course are valid (specifically the brackets).
 
+    Preconditions:
+    - all([char != ' ' for char in s])
+
     >>> s = '(a)'
     >>> surrounding_course(s)
     'a'
 
-    >>> s = '((ab), c)'
+    >>> s = '((ab),c)'
     >>> surrounding_course(s)
-    '(ab, c)'
+    '(ab,c)'
     """
     requisites_list = split_string(requisites)
 
@@ -354,18 +382,17 @@ def surrounding_course(requisites: str) -> str:
 
 
 if __name__ == '__main__':
-    create_clean_data_file('output.xlsx')
 
-    # import doctest
-    #
-    # doctest.testmod(verbose=True)
-    #
-    # import python_ta
-    #
-    # python_ta.check_all(config={
-    #     'extra-imports': ['annotations', '_Course', 'Tree', 'BoolOp', 'expression_tree_classes'],
-    #     # the names (strs) of imported modules
-    #     'allowed-io': [],  # the names (strs) of functions that call print/open/input
-    #     'max-line-length': 120,
-    #     'max-nested-blocks': 4
-    # })
+    import doctest
+
+    doctest.testmod(verbose=True)
+
+    import python_ta
+
+    python_ta.check_all(config={
+        'extra-imports': ['openpyxl', 'pandas'],
+        # the names (strs) of imported modules
+        'allowed-io': [],  # the names (strs) of functions that call print/open/input
+        'max-line-length': 120,
+        'max-nested-blocks': 4
+    })

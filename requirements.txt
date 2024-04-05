@@ -1,6 +1,6 @@
 # UofT_Visual_Course_Map required libraries
 
-# Webscraping 
+# Webscraping
 typing
 pandas
 requests
@@ -13,5 +13,4 @@ python-ta~=2.7.0
 # Graphics and data visualization
 plotly>=5.18.0
 
-
-
+pprint
