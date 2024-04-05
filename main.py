@@ -13,6 +13,7 @@ from degree import Degree
 from file_reader import load_graph
 from plotly_visualization import display_plot
 
+
 # LOAD GRAPH
 # graph = load_graph('clean_data_v3.xlsx')
 #
@@ -28,11 +29,9 @@ def run_commands(g: Graph) -> None:
     """
     Prints out a list of commands the user can use to interact with our interface.
     """
-    commands = ['Get Prerequisites', 'Get Dependents', 'Display Course', 'Browse', 'Help'
-                , "Quit"]
+    commands = ['Get Prerequisites', 'Display Course', 'Help', "Quit"]
     print(f'LIST OF COMMANDS:'
           f'- Get Prerequisites'
-          f'- Get Dependents'
           f'- Display Course'
           f'- Help'
           f'- Quit')
@@ -46,12 +45,20 @@ def run_commands(g: Graph) -> None:
             course_map_help(commands)
         elif user_input == "display":
             course = input("Which course would you like to display?")
-            display_plot(g, course)
-        else:
-            user_input = input('Invalid input. What would you like to do? ')
+            if g.valid_course(course):
+                display_plot(g, course)
+            else:
+                print("Not a valid course name!")
+
+        elif user_input == "prerequisites":
+            course = input("Which course do you want the prerequistes for?")
+            if g.valid_course(course):
+                print(g.get_prerequisites(course, set(), set(), 1))
+            else:
+                print("Not a valid course name!")
+        user_input = input('What would you like to do? ').lower()
 
     # action after selecting valid command
-
 
 
 def course_map_help(commands) -> None:
@@ -80,10 +87,10 @@ def course_map_help(commands) -> None:
               f'Once you type this command in, you will be prompted to provide a course.'
               f'The algorithm will display the graph of the course you typed in visually (a new window will pop up).')
 
+
 """
 What prerequisites are needed to take a particular course?
 """
-
 
 """
 What is the given a course a prerequisites for?
