@@ -8,34 +8,22 @@ Creators:
 - Ryan Fu
 - Vennise Ho
 """
+import pprint
 from graph_course import Graph
-from degree import Degree
 from file_reader import load_graph
 from plotly_visualization import display_plot
-import pprint
-
-
-# LOAD GRAPH
-# graph = load_graph('clean_data_v3.xlsx')
-#
-# # Computer Science Specialist
-# cs_specialist = Degree('Computer Science Specialist', 'ASSPE1609', 'Specialist')
-# required_courses = []
-
-# for course in required_courses:
-#     cs_specialist.add_prerequisites()
 
 
 def run_commands(g: Graph) -> None:
     """
     Prints out a list of commands the user can use to interact with our interface.
     """
-    commands = ['Get Prerequisites', 'Display Course', 'Help', "Quit"]
-    print(f'LIST OF COMMANDS:\n'
-          f'- Get Prerequisites\n'
-          f'- Display Course\n'
-          f'- Help\n'
-          f'- Quit\n')
+    commands = ['prerequisites', 'display', 'help', "quit"]
+    print('LIST OF COMMANDS:\n'
+          '- prerequisites\n'
+          '- display\n'
+          '- help\n'
+          '- quit\n')
 
     print()
 
@@ -62,67 +50,45 @@ def run_commands(g: Graph) -> None:
     # action after selecting valid command
 
 
-def course_map_help(commands) -> None:
+def course_map_help(commands: list) -> None:
     """
-    Tells the user what each command does.
+    Prints out a description of each command.
     """
     user_input = input('What command would you like help with? ')
 
     while user_input not in commands:
         user_input = input('Invalid input. What would command would you like help with?? ')
 
-    if user_input == 'Get Prerequisites':
-        print(f'Gets the prerequisites needed for a given course. '
-              f'Once you type this command in, you will be prompted to provide a course.'
-              f'The algorithm will provide a list of courses required as prerequisites for the course you typed in and '
-              f'will also display this graph visually (a new window will pop up).')
+    if user_input == 'prerequisites':
+        print('Gets the prerequisites needed for a given course.\n '
+              'Once you type this command in, you will be prompted to provide a course.\n'
+              'The algorithm will provide a list of possible pathways as prerequisites for the course you typed in\n'
+              'along with the credits each pathway will take.')
 
-    elif user_input == ' Get Dependents':
-        print(f'Gets the dependents of a given course. '
-              f'Once you type this command in, you will be prompted to provide a course.'
-              f'The algorithm will provide a list of courses that require the course you typed in as a prerequisite and'
-              f'will also display this graph visually (a new window will pop up).')
+    elif user_input == 'display':
+        print('Displays the given course visually, along with its prerequisites and dependents.\n'
+              'Once you type this command in, you will be prompted to provide a course.\n'
+              'The algorithm will display the graph of the course you typed in visually (a new window will pop up).'
+              'If the system outputs an empty list, no prerequisites are needed.\n')
 
-    elif user_input == 'Display Course':
-        print(f'Displays the given course visually, along with its prerequisites and dependents. '
-              f'Once you type this command in, you will be prompted to provide a course.'
-              f'The algorithm will display the graph of the course you typed in visually (a new window will pop up).')
+    elif user_input == 'quit':
+        print('Ends the program.')
 
+    elif user_input == 'help':
+        print('Outputs descriptions of each command.')
 
-"""
-What prerequisites are needed to take a particular course?
-"""
-
-"""
-What is the given a course a prerequisites for?
-"""
-
-"""
-Display courses
-"""
 
 if __name__ == '__main__':
     graph = load_graph('clean_data_v4.xlsx')
-
     run_commands(graph)
 
-    m = graph.get_prerequisites('MAT237Y1', {'MAT135H1'}, {'MAT137Y1'}, 3.0)
-    print(m)
-    print(graph.get_prerequisites('STA237H1', {'MAT135H1'}, {'MAT137Y1'}, 3.0))
-    print(graph.get_all_prerequisites('STA237H1'))
+    import doctest
+    doctest.testmod()
 
-    # p = graph._courses['MAT237Y1'].prerequisites
-    # print(p.evaluate())
-
-    print(graph.get_all_prerequisites('MAT237Y1'))
-
-    #
-    # import doctest
-    # doctest.testmod()
-    #
-    # import python_ta
-    # python_ta.check_all(config={
-    #     'extra-imports': ['graph_course', 'degree'],  # the names (strs) of imported modules
-    #     'allowed-io': [],  # the names (strs) of functions that call print/open/input
-    #     'max-line-length': 120
-    # })
+    import python_ta
+    python_ta.check_all(config={
+        # the names (strs) of imported modules
+        'extra-imports': ['graph_course', 'degree', 'file_reader', 'plotly_visualization', 'pprint'],
+        'allowed-io': ['print', 'pprint', 'input'],  # the names (strs) of functions that call print/open/input
+        'max-line-length': 120
+    })
